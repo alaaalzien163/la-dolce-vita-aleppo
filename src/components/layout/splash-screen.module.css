@@ -1,0 +1,99 @@
+/* Splash screen scene - co-located keyframes and 3D state.
+ *
+ * Durations here mirror the JS timeline in splash-screen.tsx:
+ *
+ *   - `splash-out` runs for exactly `EXIT_MS` (550ms); the component unmounts the
+ *     overlay on that same timeout, so the CSS and JS exit must stay in lockstep.
+ *   - entrance phases are pure CSS; the JS only holds the overlay mounted for
+ *     `HOLD_MS` before switching to `.exit`.
+ *
+ * The overlay carries `perspective`, `.scene` a rotating group, and each emblem
+ * wrapper its own one-shot entrance transform. Parent/child `transform-style:
+ * preserve-3d` is required at every level or an intermediate flattening would kill
+ * the depth.
+ */
+
+.overlay {
+  /* Always the official cream, never the theme surface: the mark is single-colour
+   * olive and only reads on a light ground, so night mode keeps this one light
+   * moment (the cream ramp and --color-background flip in dark mode). */
+  background-color: var(--color-brand-cream);
+  perspective: 1200px;
+  animation: splash-fade-in 0.32s ease-out both;
+}
+
+.exit {
+  animation: splash-out 0.55s ease-in forwards;
+}
+
+.scene {
+  transform-style: preserve-3d;
+  animation: scene-sway 3.4s ease-in-out 1s infinite alternate;
+}
+
+.ring {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: ring-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.emblem {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: emblem-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+@keyframes splash-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes splash-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The gold ring settles like a coin landing flat. */
+@keyframes ring-in {
+  0% {
+    opacity: 0;
+    transform: rotateX(88deg) scale(0.4);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) scale(1);
+  }
+}
+
+/* The logo tips up from below its baseline into a flat plane. */
+@keyframes emblem-in {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) rotateX(76deg) scale(0.92);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+}
+
+/* A slow, subtle group sway keeps the hold readable as 3D. */
+@keyframes scene-sway {
+  from {
+    transform: rotateY(-4deg);
+  }
+  to {
+    transform: rotateY(4deg);
+  }
+}

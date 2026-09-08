@@ -1,0 +1,380 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+ * LA DOLCE VITA - DESIGN TOKENS
+ *
+ * Tailwind CSS v4 is configured CSS-first. There is no tailwind.config.js.
+ *
+ * Token layers, outermost first:
+ *   1. Brand      - the official colors. Authoritative. Never overridden.
+ *   2. Ramps      - lightness-only derivations of a brand color. Same hue and
+ *                   saturation, so every ramp step is traceable to its source.
+ *   3. Semantic   - what a color is *for*. Components reference only these.
+ *
+ * Ramp steps that equal an official color are annotated. Derived steps exist
+ * because some brand pairings fail WCAG AA - most importantly gold on cream at
+ * 1.54:1, which cannot carry text, icons, or borders. See the contrast table in
+ * the Phase 3 report.
+ * ========================================================================== */
+
+@theme {
+  /* --- 1. Brand palette (official, authoritative) ------------------------ */
+  --color-brand-gold: #cdb168;
+  --color-brand-cream: #e7ddc8;
+  --color-brand-olive: #3f4123;
+  --color-brand-burgundy: #550000;
+  /* Client-approved banner burgundy ("Powder Burgundy"): the Hero/banner face.
+     Deliberately distinct from the deeper brand burgundy above, which stays the
+     `emphasis` accent rather than a surface. */
+  --color-brand-banner: #710014;
+
+  /* --- 2. Ramps: lightness-only derivations ------------------------------ */
+
+  /* Gold - hue 43.4deg, saturation 50.2% held constant */
+  --color-gold-300: #d6c084; /* hover lift; olive text 5.89:1 */
+  --color-gold-400: #cdb168; /* = brand gold; olive text 5.06:1 */
+  --color-gold-500: #c7a856; /* pressed; olive text 4.60:1 */
+  --color-gold-600: #927730; /* non-text UI on cream 3.18:1 */
+  --color-gold-700: #735e26; /* gold-toned text on cream 4.64:1 */
+
+  /* Olive - hue 64deg, saturation 30% held constant */
+  --color-olive-500: #747740; /* non-text UI on cream 3.50:1 */
+  --color-olive-600: #5a5d32; /* muted text on cream 5.11:1 */
+  --color-olive-700: #4d502b;
+  --color-olive-800: #3f4123; /* = brand olive; on cream 7.82:1 */
+  --color-olive-900: #2e301a; /* hover/pressed on dark surfaces */
+
+  /* Cream - hue 40.6deg, saturation 39.2% held constant */
+  --color-cream-50: #faf8f4; /* raised surface; olive text 9.94:1 */
+  --color-cream-100: #f4f0e6; /* alternating surface */
+  --color-cream-200: #e7ddc8; /* = brand cream; page background */
+  --color-cream-300: #ddcfb1; /* hairlines and dividers */
+
+  /* Burgundy - hue 0deg */
+  --color-burgundy-700: #6b0000; /* hover; cream text 9.58:1 */
+  --color-burgundy-800: #550000; /* = brand burgundy; cream text 11.23:1 */
+  --color-burgundy-900: #420000; /* pressed; cream text 12.65:1 */
+
+  /* Banner burgundy - hue 0deg, saturation 100%, value 44% held constant
+     (Powder Burgundy, the client-approved Hero/banner colour). Lighter than
+     the brand burgundy above, so it reads rich rather than near-black under
+     large type; cream text on it still clears AAA at 9.09:1. */
+  --color-banner-600: #8a0018; /* hover/lightest gradient stop */
+  --color-banner-700: #710014; /* = brand banner; main banner surface */
+  --color-banner-800: #5d0010; /* pressed/darker gradient stop */
+  --color-banner-900: #4c000d; /* deepest gradient stop */
+
+  /* --- 3. Semantic tokens (the only layer components should use) --------- */
+
+  /* Surfaces */
+  --color-background: var(--color-cream-200);
+  /* Raised public cards and editorial panels retain the client-approved cream;
+     separation comes from the existing border and restrained shadow rather than
+     a second light fill. */
+  --color-surface: var(--color-cream-200);
+  --color-surface-muted: var(--color-cream-100);
+  --color-surface-subtle: var(--color-surface-muted);
+  --color-surface-raised: var(--color-surface);
+  --color-surface-inverse: var(--color-olive-800);
+  --color-surface-inverse-muted: var(--color-olive-700);
+  /* Banner surface - the Hero and banner face only. Pinned tokens below stay
+     literal because cream-200/cream-300 flip to night shades in dark mode and
+     the banner is a brand colour, not a theme ramp. */
+  --color-banner-surface: var(--color-banner-700);
+  --color-banner-foreground: var(--color-cream-200);
+  --color-banner-foreground-muted: var(--color-cream-300);
+
+  /* Foreground */
+  --color-foreground: var(--color-olive-800);
+  --color-foreground-muted: var(--color-olive-600);
+  --color-foreground-inverse: var(--color-cream-200);
+  --color-foreground-inverse-muted: var(--color-cream-300);
+  --color-heading: var(--color-olive-800);
+
+  /* Lines */
+  --color-border: var(--color-cream-300);
+  --color-border-strong: var(--color-olive-500);
+  --color-border-inverse: var(--color-olive-700);
+
+  /* Controls */
+  --color-input: var(--color-surface);
+  --color-input-border: var(--color-border-strong);
+  --color-input-placeholder: var(--color-foreground-muted);
+
+  /* Gold accent - the primary brand accent */
+  --color-accent: var(--color-gold-400);
+  --color-accent-hover: var(--color-gold-300);
+  --color-accent-active: var(--color-gold-500);
+  --color-accent-foreground: var(--color-olive-800);
+  --color-accent-line: var(--color-gold-600); /* rules, icon strokes on cream */
+  --color-accent-ink: var(--color-gold-700); /* gold-toned text on cream */
+
+  /* Burgundy emphasis - secondary accent, used sparingly */
+  --color-emphasis: var(--color-burgundy-800);
+  --color-emphasis-hover: var(--color-burgundy-700);
+  --color-emphasis-active: var(--color-burgundy-900);
+  --color-emphasis-foreground: var(--color-cream-200);
+  --color-error: var(--color-emphasis);
+  --color-success: var(--color-olive-800);
+  --color-warning: var(--color-gold-700);
+
+  /* Focus */
+  --color-ring: var(--color-olive-800);
+  --color-ring-inverse: var(--color-brand-cream);
+
+  /* --- Editorial type scale (fluid; additive to Tailwind's defaults) ----- */
+  --text-eyebrow: 0.75rem;
+  --text-display-sm: clamp(1.625rem, 1.35rem + 1.4vw, 2.25rem);
+  --text-display-md: clamp(2rem, 1.55rem + 2.2vw, 3.25rem);
+  --text-display-lg: clamp(2.5rem, 1.75rem + 3.6vw, 4.25rem);
+
+  --tracking-eyebrow: 0.18em;
+  --tracking-display: -0.012em;
+
+  --leading-display: 1.1;
+  --leading-body: 1.7; /* generous - Arabic needs more leading than Latin */
+
+  /* --- Radii: modest by design, never pill-shaped cards ----------------- */
+  --radius-control: 3px; /* buttons, inputs */
+  --radius-card: 4px;
+  --radius-panel: 6px;
+  --radius-pill: 999px; /* small badges only */
+
+  /* --- Shadows: olive-tinted, never neutral black, never heavy ---------- */
+  --shadow-hairline: 0 1px 0 0 rgb(63 65 35 / 0.06);
+  --shadow-card: 0 1px 2px 0 rgb(63 65 35 / 0.05), 0 2px 8px -4px rgb(63 65 35 / 0.08);
+  --shadow-raised: 0 6px 20px -8px rgb(63 65 35 / 0.14);
+
+  /* --- Containers ------------------------------------------------------- */
+  --container-measure: 42rem; /* comfortable reading measure */
+  --container-content: 72rem; /* default page content width */
+  --container-wide: 82.5rem; /* full-bleed-ish editorial width */
+
+  /* --- Spacing: gutters and vertical rhythm ----------------------------- */
+  --spacing-gutter: 1.25rem; /* mobile horizontal gutter */
+  --spacing-gutter-lg: 2rem; /* >=md horizontal gutter */
+  --spacing-section: clamp(3.5rem, 2.5rem + 4vw, 7rem);
+  --spacing-section-lg: clamp(5rem, 3rem + 6vw, 9rem);
+}
+
+/* Font families are declared `inline` so the utilities emit the next/font
+ * variables directly instead of another layer of indirection. Each script is a
+ * separate family carrying its own `unicode-range`, so listing both lets the
+ * browser resolve per glyph: Arabic text picks the Arabic face, Latin text the
+ * Latin one, and only the files whose glyphs appear are downloaded. */
+@theme inline {
+  --font-sans:
+    var(--font-body-latin), var(--font-body-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-latin), var(--font-display-arabic), ui-serif, Georgia, serif;
+}
+
+/* ==========================================================================
+ * DARK THEME (NIGHT MODE)
+ *
+ * Gated on `data-theme="dark"` on `<html>`, set before first paint by the inline
+ * script in the public locale layout. Official brand colors (gold, cream, olive,
+ * burgundy) stay authoritative in both themes; what changes here is what they are
+ * *for*:
+ *
+ *   - The cream ramp is re-derived as a dark tonal ramp so decorative gradients
+ *     that name it literally (editorial panels) read as night shades.
+ *   - Semantic tokens that pointed at the now-flipped ramp are pinned to literals,
+ *     because a `var(--color-cream-*)` reference would silently drag their meaning
+ *     into the dark ramp. `foreground-inverse` must stay cream-on-olive, for
+ *     example - the inverse bands are already night surfaces, so they are left
+ *     alone and gain contrast from the darker page behind them.
+ *   - Text/line/ring accents that were tuned for cream pages get lighter values so
+ *     they stay legible on the near-black olive ground.
+ *
+ * `color-scheme` is flipped here so native widgets, scrollbars, and form controls
+ * render as night controls. The admin layout never sets `data-theme`, so it stays
+ * light.
+ * ========================================================================== */
+
+@layer base {
+  html[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Cream ramp → dark tonal ramp (decorative gradient stops and utilities). */
+    --color-cream-50: #1a1c12;
+    --color-cream-100: #202218;
+    --color-cream-200: #26291b;
+    --color-cream-300: #2e3120;
+
+    /* Surfaces */
+    --color-background: #171810;
+    --color-surface: #1e2015;
+    --color-surface-muted: #26291b;
+    --color-surface-subtle: #26291b;
+    --color-surface-raised: #1e2015;
+    /* Inverse bands stay brand olive with cream text: they were already night. */
+    --color-surface-inverse: #3f4123;
+    --color-surface-inverse-muted: #4d502b;
+
+    /* Foreground */
+    --color-foreground: #ece6d3;
+    --color-foreground-muted: #b0ae8f;
+    --color-foreground-inverse: #f2ecdc;
+    --color-foreground-inverse-muted: #d6cdb0;
+    --color-heading: #f2ecdc;
+
+    /* Lines */
+    --color-border: #343628;
+    --color-border-strong: #6a6d4b;
+    --color-border-inverse: #5a5d3a;
+
+    /* Controls retain their own dark surface and high-contrast boundary. */
+    --color-input: #1e2015;
+    --color-input-border: #6a6d4b;
+    --color-input-placeholder: #b0ae8f;
+
+    /* Accent roles tuned for the night ground */
+    --color-accent-line: #c9a856;
+    --color-accent-ink: #d3bd84;
+
+    /* Emphasis foreground pointed at the flipped cream ramp; pin it back up. */
+    --color-emphasis-foreground: #f2ecdc;
+    --color-error: #d98484;
+    --color-success: #c8cd83;
+    --color-warning: #d3bd84;
+
+    /* Banner foregrounds point at the flipped cream ramp; pin them back up.
+       The banner surface itself stays #710014 in night mode - it is a brand
+       colour, not a theme ramp - so its text must always be the light creams. */
+    --color-banner-foreground: #f2ecdc;
+    --color-banner-foreground-muted: #d6cdb0;
+
+    /* Focus rings: cream is the legible ring against dark page and olive bands. */
+    --color-ring: #e7ddc8;
+    --color-ring-inverse: #e7ddc8;
+
+    /* Shadows: black-tinted so they survive on the dark ground. */
+    --shadow-hairline: 0 1px 0 0 rgb(0 0 0 / 0.45);
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 2px 8px -4px rgb(0 0 0 / 0.55);
+    --shadow-raised: 0 6px 20px -8px rgb(0 0 0 / 0.55);
+  }
+}
+
+/* ==========================================================================
+ * GLOBAL BASE STYLES
+ * Page- and section-specific styling belongs in components, not here.
+ * ========================================================================== */
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: var(--leading-body);
+    font-synthesis-weight: none;
+    /* Long unbroken strings (URLs, Latin words inside Arabic copy) must never
+     * force horizontal scrolling on a 320px viewport. */
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+  }
+
+  input[type="file"] {
+    color: var(--color-foreground);
+  }
+
+  input[type="file"]::file-selector-button {
+    margin-inline-end: 0.75rem;
+    border: 1px solid var(--color-input-border);
+    border-radius: var(--radius-control);
+    background-color: var(--color-input);
+    color: var(--color-foreground);
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+  }
+
+  tbody tr {
+    transition: background-color 150ms ease-out;
+  }
+
+  tbody tr:hover {
+    background-color: var(--color-surface-subtle);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-accent-foreground);
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * FOCUS
+ *
+ * A single ring color works on every light surface because `outline-offset`
+ * places the ring on the page background rather than on the control: olive on
+ * cream is 7.82:1, so contrast never depends on the button's own fill. That
+ * matters for the burgundy variant, where olive directly against burgundy would
+ * only reach 1.44:1.
+ *
+ * Dark surfaces flip the ring via `data-surface="inverse"`, and the burgundy
+ * banner does the same via `data-surface="banner"`, both set by the Section
+ * primitive: cream on either night ground clears the same bar.
+ * -------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+[data-surface="inverse"] :focus-visible,
+[data-surface="banner"] :focus-visible {
+  outline-color: var(--color-ring-inverse);
+}
+
+/* --------------------------------------------------------------------------
+ * MOTION
+ *
+ * Unlayered so these rules beat Tailwind's layered utilities. Smooth scrolling
+ * is opt-in only when the visitor has expressed no preference against motion;
+ * `data-scroll-behavior="smooth"` on <html> covers the Next.js router side.
+ * -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Decorative autoplay videos are not content: their static editorial underlay
+     (`decorative-video.tsx`) is the reduced-motion presentation. Hiding the
+     element also stops the media download entirely for these visitors. */
+  .autoplay-video {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -14,8 +14,8 @@
  */
 
 .overlay {
-  /* The banner token remains burgundy in both theme modes. */
-  background-color: var(--color-banner-surface);
+  /* The deeper established burgundy gives the splash a quieter brand moment. */
+  background-color: var(--color-burgundy-300);
   perspective: 1200px;
   animation: splash-fade-in 0.32s ease-out both;
 }
@@ -89,9 +89,9 @@
 /* A slow, subtle group sway keeps the hold readable as 3D. */
 @keyframes scene-sway {
   from {
-    transform: rotateY(-4deg);
+    transform: translateY(-0.75rem) rotateY(-4deg);
   }
   to {
-    transform: rotateY(4deg);
+    transform: translateY(-0.75rem) rotateY(4deg);
   }
 }

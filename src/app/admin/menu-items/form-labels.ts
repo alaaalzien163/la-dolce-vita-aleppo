@@ -73,7 +73,6 @@ export async function getMenuItemFormLabels(groups: readonly MenuItemCategoryGro
         categoryInvalid: t("categoryInvalid"),
         categoryNotFound: t("categoryNotFound"),
         descriptionTooLong: t("descriptionTooLong"),
-        priceRequired: t("priceRequired"),
         priceInvalid: t("priceInvalid"),
         currencyInvalid: t("currencyInvalid"),
         currencyNotConfigured: t("currencyNotConfigured"),

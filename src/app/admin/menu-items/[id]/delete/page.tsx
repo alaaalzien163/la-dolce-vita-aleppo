@@ -12,6 +12,7 @@ import {
   getAdminMenuItem,
   listAdminItemCategoryGroups,
 } from "@/lib/data/admin/menu-items";
+import { formatPublicPrice } from "@/lib/utils/public-price";
 
 /**
  * Delete confirmation.
@@ -113,7 +114,7 @@ export default async function DeleteMenuItemPage({ params }: DeleteMenuItemPageP
                 <div>
                   <dt className="text-foreground-muted">{t("colPrice")}</dt>
                   <dd dir="ltr" className="mt-1 font-medium">
-                    {itemResult.data.price} {itemResult.data.currency}
+                    {formatPublicPrice(itemResult.data.price, itemResult.data.currency) ?? ""}
                   </dd>
                 </div>
                 <div>

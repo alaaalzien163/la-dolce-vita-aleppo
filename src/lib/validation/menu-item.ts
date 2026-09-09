@@ -30,11 +30,9 @@ const DISPLAY_ORDER_MAX = 2_147_483_647;
  * Money, as a literal decimal string.
  *
  * Up to eight integer digits and at most two decimal places. The bound is deliberately
- * conservative: the generated types describe `price` only as `number`, so the column's real
- * precision and scale are unknown, and this shape is the largest that still fits a
- * `numeric(10,2)` - the most likely definition for a price column. Rejecting an oversized
- * price here produces a field-level message; letting it through would produce a database
- * error the admin cannot act on. Widen this once the column definition is confirmed.
+ * constrained to `numeric(10,2)`, so this is the largest accepted shape. Rejecting an oversized
+ * price here produces a field-level message; letting it through would produce a database error
+ * the admin cannot act on.
  *
  * The pattern also does the work of several separate rules. No sign is permitted, so `-5` and
  * `-0` are rejected; no exponent is permitted, so `1e3` is rejected; and because the test
@@ -50,7 +48,6 @@ export const MENU_ITEM_FIELD_ERROR = {
   /** Referenced by the action when no category with that id is visible to the admin. */
   categoryNotFound: "categoryNotFound",
   descriptionTooLong: "descriptionTooLong",
-  priceRequired: "priceRequired",
   priceInvalid: "priceInvalid",
   currencyInvalid: "currencyInvalid",
   /** A currency was submitted while no supported set is configured, so none can be trusted. */
@@ -118,7 +115,7 @@ export function createMenuItemInputSchema(allowedCurrencies: readonly string[]) 
       }),
 
     /**
-     * NOT NULL in the database, so it is required here too.
+     * Empty input represents an intentionally unpriced item and is stored as NULL.
      *
      * The validated string is converted once, at the end, and no arithmetic is ever performed
      * on the result. That is what keeps binary floating point out of the money path: a value
@@ -129,12 +126,11 @@ export function createMenuItemInputSchema(allowedCurrencies: readonly string[]) 
     price: z
       .string()
       .transform((value) => value.trim())
-      .refine((value) => value.length > 0, { message: MENU_ITEM_FIELD_ERROR.priceRequired })
-      .refine((value) => PRICE_PATTERN.test(value), {
+      .refine((value) => value.length === 0 || PRICE_PATTERN.test(value), {
         message: MENU_ITEM_FIELD_ERROR.priceInvalid,
       })
-      .transform((value) => Number(value))
-      .refine((value) => Number.isFinite(value) && value >= 0, {
+      .transform((value) => (value.length === 0 ? null : Number(value)))
+      .refine((value) => value === null || (Number.isFinite(value) && value >= 0), {
         message: MENU_ITEM_FIELD_ERROR.priceInvalid,
       }),
 

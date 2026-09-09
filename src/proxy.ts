@@ -1,3 +1,4 @@
+import { hasLocale } from "next-intl";
 import createMiddleware from "next-intl/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -45,6 +46,7 @@ const intlMiddleware = createMiddleware(routing);
 
 const ADMIN_ROOT = "/admin";
 const ADMIN_LOGIN = "/admin/login";
+const LOCALE_COOKIE_NAME = "NEXT_LOCALE";
 
 /**
  * Admin modules that no longer exist.
@@ -80,6 +82,26 @@ export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!isAdminPath(pathname)) {
+    if (pathname === "/") {
+      const preferredLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+      const locale = hasLocale(routing.locales, preferredLocale)
+        ? preferredLocale
+        : routing.defaultLocale;
+      const response = NextResponse.redirect(new URL(`/${locale}`, request.url));
+
+      // Establish English as the initial preference, without overwriting a valid
+      // language previously selected by the visitor.
+      if (preferredLocale !== locale) {
+        response.cookies.set(LOCALE_COOKIE_NAME, locale, {
+          path: "/",
+          maxAge: 31_536_000,
+          sameSite: "lax",
+        });
+      }
+
+      return response;
+    }
+
     return intlMiddleware(request);
   }
 

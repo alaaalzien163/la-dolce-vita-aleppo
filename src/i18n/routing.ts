@@ -9,11 +9,11 @@ import { defineRouting } from "next-intl/routing";
  */
 export const routing = defineRouting({
   locales: ["ar", "en"],
-  defaultLocale: "ar",
+  defaultLocale: "en",
   localePrefix: "always",
 
   // Negotiate `/` from the `NEXT_LOCALE` cookie first, then `Accept-Language`,
-  // falling back to `defaultLocale` ("ar").
+  // falling back to `defaultLocale` ("en").
   localeDetection: true,
 
   // Emit a `Link` response header advertising alternates to crawlers. This

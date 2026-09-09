@@ -21,7 +21,7 @@ import { routing } from "@/i18n/routing";
  * touching the public i18n architecture at all.
  *
  * Falls back to `routing.defaultLocale` when the cookie is absent or unrecognised, so
- * a first visit straight to `/admin/login` still renders in Arabic rather than
+ * a first visit straight to `/admin/login` still renders in English rather than
  * failing.
  *
  * Reading a cookie makes every admin route dynamic. That is required anyway: these

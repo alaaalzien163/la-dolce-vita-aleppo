@@ -217,23 +217,23 @@ export function MenuItemForm({ action, labels, groups, cancelHref, item }: MenuI
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex flex-col gap-2">
           <label htmlFor="menu-item-price" className="text-sm font-semibold">
-            {labels.price}
+            {labels.price}{" "}
+            <span className="font-normal text-foreground-muted">({labels.optional})</span>
           </label>
           {/*
             `type="text"` with a numeric input mode rather than `type="number"`. A number input
             silently accepts locale decimal separators and exponent notation in some browsers,
             and reports an empty string for a value it considers invalid - which would turn a
-            typo into "price is required" instead of "price is not a valid amount". Text keeps
+             typo into "price is not a valid amount". Text keeps
             exactly what was typed so the server can say precisely what is wrong.
           */}
           <input
             id="menu-item-price"
             name="price"
             type="text"
-            required
             inputMode="decimal"
             autoComplete="off"
-            defaultValue={item ? String(item.price) : ""}
+            defaultValue={item?.price === null || !item ? "" : String(item.price)}
             dir="ltr"
             disabled={pending}
             aria-invalid={fieldErrors.price ? true : undefined}

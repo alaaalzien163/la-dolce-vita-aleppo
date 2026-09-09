@@ -109,7 +109,7 @@ export type Database = {
           is_available: boolean;
           is_featured: boolean;
           name: string;
-          price: number;
+          price: number | null;
           updated_at: string;
         };
         Insert: {
@@ -123,7 +123,7 @@ export type Database = {
           is_available?: boolean;
           is_featured?: boolean;
           name: string;
-          price: number;
+          price?: number | null;
           updated_at?: string;
         };
         Update: {
@@ -137,7 +137,7 @@ export type Database = {
           is_available?: boolean;
           is_featured?: boolean;
           name?: string;
-          price?: number;
+          price?: number | null;
           updated_at?: string;
         };
         Relationships: [

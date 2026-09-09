@@ -1,26 +1,25 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils/cn";
 
 import styles from "./splash-screen.module.css";
 
 /**
- * Decorative splash screen that plays once when a visitor enters the site.
+ * Decorative splash screen that plays on every full public document load.
  *
  * A fixed cream overlay plays a short CSS 3D entrance - a gold ring settles like a
  * coin, the olive logo tips up beneath it, then the whole group sways gently - and
  * fades out on its own. The page underneath keeps rendering and hydrating the whole
  * time; the splash only covers it and is never unmounted as content.
  *
- * A session-storage marker prevents it from replaying on refreshes, locale changes,
- * or later full document loads in the same browser tab. A new tab or browser session
- * is a new site entry and may show it once. The `[locale]` layout also stays mounted
- * across client-side navigation, so it never reappears while the visitor clicks
- * around. Visitors who prefer reduced motion skip it entirely and go straight to
- * content; there is no animation to play back for them.
+ * The `[locale]` layout stays mounted across client-side navigation, so it does not
+ * replay while the visitor clicks around. A refresh, direct URL entry, or other full
+ * document load mounts a new layout and plays it again. Visitors who prefer reduced
+ * motion skip it entirely and go straight to content; there is no animation to play
+ * back for them.
  *
  * SSR renders no overlay, and the effect starts one a tick after hydration.
  * Starting in the `idle` phase keeps server HTML and the first hydrated render
@@ -32,15 +31,14 @@ import styles from "./splash-screen.module.css";
  * itself is decorative and exposes nothing to the accessibility tree. Its backdrop
  * is always the brand cream, never the theme surface: the mark is a single-colour
  * olive image that is invisible on dark, so the emblem dictates a light moment
- * regardless of night mode.
+ * regardless of night mode. The existing inverse wordmark is used because the
+ * source logo asset is olive-only and must not be recoloured.
  *
  * No `useTranslations` - the splash is the logo mark plus a gold ring, identical in
  * both locales, so it needs no message catalogue.
  */
 
 type Phase = "idle" | "playing" | "exiting" | "done";
-
-const SPLASH_SESSION_KEY = "ldv-splash-seen";
 
 /** How long the full scene is held before the exit fade starts. */
 const HOLD_MS = 1900;
@@ -52,14 +50,9 @@ const HOLD_MS = 1900;
 const EXIT_MS = 550;
 
 /**
- * Largest rendered width of the splash logo mark, in CSS pixels. The logo's own
- * `Logo` component tops out at header/footer scale (`RENDERED_HEIGHT.lg` = 48px);
- * the splash needs a display size beyond that, so the mark is rendered here directly
- * from the same source asset. Intrinsic dimensions are taken from `logo.tsx`'s
- * `INTRINSIC` (2365 x 794) so the layout box and ratio stay authoritative.
+ * The splash uses the existing inverse wordmark treatment. The source logo image is
+ * olive-only, and the project intentionally does not recolour source artwork.
  */
-const SPLASH_MAX_WIDTH = 416;
-const SPLASH_HEIGHT = Math.round((SPLASH_MAX_WIDTH * 794) / 2365);
 
 interface SplashScreenProps {
   readonly children: ReactNode;
@@ -72,21 +65,11 @@ export function SplashScreen({ children }: SplashScreenProps) {
     setPhase((current) => (current === "playing" ? "exiting" : current));
   }, []);
 
-  // Decide once whether this browser-tab session has already entered the site. The
-  // decision is deferred a tick before `setPhase`, so SSR and hydration both begin
-  // in `idle`. If storage is unavailable, showing the splash is the safe fallback.
+  // Start after hydration so SSR and hydration both begin in `idle`. Each full public
+  // document load mounts a new component and therefore plays the splash once.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
-    }
-
-    try {
-      if (window.sessionStorage.getItem(SPLASH_SESSION_KEY) === "true") {
-        return;
-      }
-      window.sessionStorage.setItem(SPLASH_SESSION_KEY, "true");
-    } catch {
-      // Storage may be blocked; the splash still works for this document load.
     }
 
     const id = window.setTimeout(() => setPhase("playing"), 0);
@@ -155,15 +138,7 @@ export function SplashScreen({ children }: SplashScreenProps) {
               )}
             />
             <div className={styles.emblem}>
-              <Image
-                src="/logo.png"
-                width={SPLASH_MAX_WIDTH}
-                height={SPLASH_HEIGHT}
-                alt=""
-                priority
-                sizes="(min-width: 26rem) 416px, 72vw"
-                className="h-auto w-[min(72vw,26rem)] object-contain"
-              />
+              <Logo label="La Dolce Vita" tone="inverse" size="lg" decorative />
             </div>
           </div>
         </div>

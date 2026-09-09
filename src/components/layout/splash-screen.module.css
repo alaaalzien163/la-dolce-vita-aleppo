@@ -14,10 +14,8 @@
  */
 
 .overlay {
-  /* Always the official cream, never the theme surface: the mark is single-colour
-   * olive and only reads on a light ground, so night mode keeps this one light
-   * moment (the cream ramp and --color-background flip in dark mode). */
-  background-color: var(--color-brand-cream);
+  /* The banner token remains burgundy in both theme modes. */
+  background-color: var(--color-banner-surface);
   perspective: 1200px;
   animation: splash-fade-in 0.32s ease-out both;
 }

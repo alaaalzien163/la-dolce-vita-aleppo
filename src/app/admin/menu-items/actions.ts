@@ -68,7 +68,7 @@ function toColumns(data: {
   name: string;
   categoryId: string;
   description: string | null;
-  price: number;
+  price: number | null;
   currency: string | null;
   displayOrder: number;
   isAvailable: boolean;

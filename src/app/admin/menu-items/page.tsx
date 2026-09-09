@@ -183,13 +183,13 @@ export default async function AdminMenuItemsPage({ searchParams }: MenuItemsPage
                         <div className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-4 py-3">
                           <dt className="text-foreground-muted">{t("colPrice")}</dt>
                           <dd dir="ltr" className="font-medium">
-                            {item.price}
+                            {item.price ?? ""}
                           </dd>
                         </div>
                         <div className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-4 py-3">
                           <dt className="text-foreground-muted">{t("colCurrency")}</dt>
                           <dd dir="ltr" className="font-medium">
-                            {item.currency}
+                            {item.price === null ? "" : item.currency}
                           </dd>
                         </div>
                         <div className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-4 py-3">
@@ -315,10 +315,10 @@ export default async function AdminMenuItemsPage({ searchParams }: MenuItemsPage
                             {ancestry.menuName}
                           </td>
                           <td dir="ltr" className="py-4 pe-4 whitespace-nowrap">
-                            {item.price}
+                            {item.price ?? ""}
                           </td>
                           <td dir="ltr" className="py-4 pe-4 whitespace-nowrap">
-                            {item.currency}
+                            {item.price === null ? "" : item.currency}
                           </td>
                           <td dir="ltr" className="py-4 pe-4">
                             {item.display_order}

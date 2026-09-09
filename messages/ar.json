@@ -602,7 +602,7 @@
     "profileHeading": "بيانات الملف الشخصي",
     "fieldFullName": "الاسم الكامل",
     "hintFullName": "يُعرض لفريق الإدارة. يمكنك تركه فارغًا.",
-    "fieldEmail": "السناب شات",
+    "fieldEmail": "البريد الإلكتروني",
     "fieldRole": "الدور",
     "roleAdmin": "مدير",
     "optional": "اختياري",

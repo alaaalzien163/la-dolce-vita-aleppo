@@ -15,7 +15,7 @@
 
 .overlay {
   /* The deeper established burgundy gives the splash a quieter brand moment. */
-  background-color: var(--color-burgundy-700);
+  background-color: var(--color-burgundy-800);
   perspective: 1200px;
   animation: splash-fade-in 0.32s ease-out both;
 }

@@ -26,7 +26,7 @@ import type { SiteSettingsFormValues } from "@/lib/validation/site-settings";
  *
  * Direction is per-field, not inherited from the page. `dir="auto"` lets the
  * brand name read naturally; `lang="ar" dir="rtl"` makes Arabic content fields
- * mirror; and phone, email, and URLs stay `ltr` because their order is
+ * mirror; and phone and URLs stay `ltr` because their order is
  * significant no matter the surrounding script.
  */
 
@@ -224,7 +224,7 @@ export function SettingsForm({ action, labels, settings }: SiteSettingsFormProps
         <TextField
           id="ss-email"
           name="email"
-          inputMode="email"
+          inputMode="text"
           maxLength={254}
           optional
           optionalLabel={labels.optional}

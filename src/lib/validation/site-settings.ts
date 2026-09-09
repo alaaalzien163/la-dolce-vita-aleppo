@@ -5,14 +5,14 @@ import { z } from "zod";
  *
  * SERVER VALIDATION IS THE ONLY VALIDATION THAT COUNTS. `maxLength` and
  * `inputMode` on the client are hints for the human using the form; the sketch
- * of an email or URL check in the browser would be just another opinion, so
+ * of a URL check in the browser would be just another opinion, so
  * nothing below is duplicated on the client. The schema is the authority.
  *
  * The columns are plain `text` in Postgres, so lengths are capped here - an
  * unbounded text field is a denial-of-service field in the same way that a
  * 4.5 MB upload is. The caps are generous enough that no legitimate Arabic
  * address or tagline hits them: site name 160, tagline and address 500,
- * phone 60, email 254, URLs 2048.
+ * phone 60, Snapchat text 254, URLs 2048.
  *
  * `opening_hours` is deliberately not part of this schema. Its JSON shape has
  * never been defined, and nothing public reads it yet, so a form input would
@@ -28,7 +28,7 @@ const SITE_NAME_MAX_LENGTH = 160;
 const TAGLINE_MAX_LENGTH = 300;
 const ADDRESS_MAX_LENGTH = 500;
 const PHONE_MAX_LENGTH = 60;
-const EMAIL_MAX_LENGTH = 254;
+const SNAPCHAT_MAX_LENGTH = 254;
 const URL_MAX_LENGTH = 2048;
 
 export const SITE_SETTINGS_FIELD_ERROR = {
@@ -36,8 +36,7 @@ export const SITE_SETTINGS_FIELD_ERROR = {
   siteNameTooLong: "siteNameTooLong",
   taglineTooLong: "taglineTooLong",
   phoneTooLong: "phoneTooLong",
-  emailInvalid: "emailInvalid",
-  emailTooLong: "emailTooLong",
+  snapchatTooLong: "snapchatTooLong",
   addressTooLong: "addressTooLong",
   googleMapsUrlInvalid: "googleMapsUrlInvalid",
   googleMapsUrlTooLong: "googleMapsUrlTooLong",
@@ -64,11 +63,6 @@ function isPublicHttpUrl(value: string): boolean {
   );
 }
 
-/** A plausible mailto address: one `@`, a non-empty local part and a dotted domain. */
-function isEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
 /**
  * Optional text that becomes `NULL` when blank. The length is checked on the
  * trimmed value, so whitespace can neither slip past the cap nor leave a
@@ -82,21 +76,6 @@ function optionalText(maxLength: number, tooLong: SiteSettingsFieldError) {
       return trimmed.length > 0 ? trimmed : null;
     })
     .refine((value) => value === null || value.length <= maxLength, { message: tooLong });
-}
-
-function optionalEmail() {
-  return z
-    .string()
-    .transform((value) => {
-      const trimmed = value.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    })
-    .refine((value) => value === null || value.length <= EMAIL_MAX_LENGTH, {
-      message: SITE_SETTINGS_FIELD_ERROR.emailTooLong,
-    })
-    .refine((value) => value === null || isEmail(value), {
-      message: SITE_SETTINGS_FIELD_ERROR.emailInvalid,
-    });
 }
 
 function optionalHttpUrl(invalid: SiteSettingsFieldError) {
@@ -123,7 +102,8 @@ const siteSettingsInputSchema = z.object({
     .max(SITE_NAME_MAX_LENGTH, { message: SITE_SETTINGS_FIELD_ERROR.siteNameTooLong }),
   tagline: optionalText(TAGLINE_MAX_LENGTH, SITE_SETTINGS_FIELD_ERROR.taglineTooLong),
   phone: optionalText(PHONE_MAX_LENGTH, SITE_SETTINGS_FIELD_ERROR.phoneTooLong),
-  email: optionalEmail(),
+  // The legacy `email` column stores the optional public Snapchat text or link.
+  email: optionalText(SNAPCHAT_MAX_LENGTH, SITE_SETTINGS_FIELD_ERROR.snapchatTooLong),
   address: optionalText(ADDRESS_MAX_LENGTH, SITE_SETTINGS_FIELD_ERROR.addressTooLong),
   googleMapsUrl: optionalHttpUrl(SITE_SETTINGS_FIELD_ERROR.googleMapsUrlInvalid),
   instagramUrl: optionalHttpUrl(SITE_SETTINGS_FIELD_ERROR.instagramUrlInvalid),

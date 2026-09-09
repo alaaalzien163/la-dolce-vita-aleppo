@@ -19,10 +19,9 @@ import type { SiteSettings } from "@/types/content";
  * the current database every one of these columns is null, so this section renders
  * its heading and a quiet notice - which is the honest output, not a bug.
  *
- * Phone numbers, email addresses, and URLs get `dir="ltr"`. Their glyphs are Latin
- * and their order is significant, so inheriting RTL would reorder a phone number on
- * the Arabic page - a real defect, not a cosmetic one. The surrounding label stays in
- * the page direction.
+ * Phone numbers and URLs get `dir="ltr"`. Their glyphs are Latin and their order is
+ * significant, so inheriting RTL would reorder a phone number on the Arabic page - a
+ * real defect, not a cosmetic one. The surrounding label stays in the page direction.
  *
  * OPENING HOURS ARE NOT RENDERED YET. `site_settings.opening_hours` is a `json`
  * column - established by probing the live database - but it is null in the only
@@ -85,12 +84,14 @@ export async function Contact({ locale, result }: ContactProps) {
   }
 
   if (settings?.email) {
+    const snapchatUrl = isSafeExternalUrl(settings.email) ? settings.email : undefined;
+
     entries.push({
-      key: "email",
+      key: "snapchat",
       label: t("email"),
-      href: `mailto:${settings.email}`,
+      href: snapchatUrl,
       value: settings.email,
-      isolate: true,
+      external: Boolean(snapchatUrl),
     });
   }
 

@@ -28,11 +28,11 @@ import styles from "./splash-screen.module.css";
  *
  * While it plays, the content wrapper carries the `inert` attribute so keyboard
  * focus and assistive technology cannot reach the page underneath; the overlay
- * itself is decorative and exposes nothing to the accessibility tree. Its backdrop
- * is always the brand cream, never the theme surface: the mark is a single-colour
- * olive image that is invisible on dark, so the emblem dictates a light moment
- * regardless of night mode. The existing inverse wordmark is used because the
- * source logo asset is olive-only and must not be recoloured.
+ * itself is decorative and exposes nothing to the accessibility tree.
+ *
+ * The mark is the exact Navbar logo asset (`public/logo.png`). It sits directly on
+ * the splash backdrop so the splash is one unbroken burgundy surface. Brand colours
+ * are pinned, so the splash reads the same in both themes; the logo is not recoloured.
  *
  * No `useTranslations` - the splash is the logo mark plus a gold ring, identical in
  * both locales, so it needs no message catalogue.
@@ -48,11 +48,6 @@ const HOLD_MS = 1900;
  * `splash-screen.module.css` so the two cannot drift apart.
  */
 const EXIT_MS = 550;
-
-/**
- * The splash uses the existing inverse wordmark treatment. The source logo image is
- * olive-only, and the project intentionally does not recolour source artwork.
- */
 
 interface SplashScreenProps {
   readonly children: ReactNode;
@@ -138,7 +133,12 @@ export function SplashScreen({ children }: SplashScreenProps) {
               )}
             />
             <div className={styles.emblem}>
-              <Logo label="La Dolce Vita" tone="inverse" size="lg" decorative />
+              <Logo
+                label="La Dolce Vita"
+                size="lg"
+                decorative
+                className="h-[clamp(3rem,11vw,6.5rem)] w-auto max-w-full"
+              />
             </div>
           </div>
         </div>

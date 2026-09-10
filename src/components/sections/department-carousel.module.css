@@ -86,6 +86,10 @@
   background-color: var(--color-foreground-muted);
 }
 
+.dot:active {
+  background-color: var(--color-accent-ink);
+}
+
 /* The current slide reads as a short pill in the accent (gold), longer than the
  * idle dots so the active position is legible even from a quick glance. */
 .dotActive {
@@ -106,12 +110,17 @@
   cursor: pointer;
   transition:
     color 150ms ease-out,
-    border-color 150ms ease-out;
+    border-color 150ms ease-out,
+    background-color 150ms ease-out;
 }
 
 .control:hover {
   color: var(--color-accent-ink);
   border-color: var(--color-accent-line);
+}
+
+.control:active {
+  background-color: var(--color-surface-muted);
 }
 
 /* Chevron semantics: "previous" points toward the start of reading, "next" toward

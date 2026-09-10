@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { iconButtonStyles } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -68,12 +69,10 @@ export function ThemeToggle({ toDarkLabel, toLightLabel }: ThemeToggleProps) {
       aria-label={label}
       aria-pressed={isDark}
       title={label}
-      className={cn(
-        "inline-flex size-11 items-center justify-center rounded-control text-foreground",
-        "transition-colors duration-150 ease-out hover:bg-surface-muted active:bg-border",
-      )}
+      className={cn(iconButtonStyles(), "group")}
     >
-      {/* Decorative: the button is named by aria-label. */}
+      {/* Decorative: the button is named by aria-label. The icon turns a few degrees
+          on hover as the only movement - disabled under `prefers-reduced-motion`. */}
       <svg
         aria-hidden="true"
         focusable="false"
@@ -83,7 +82,7 @@ export function ThemeToggle({ toDarkLabel, toLightLabel }: ThemeToggleProps) {
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="size-6"
+        className="size-6 transition-transform duration-200 ease-out motion-safe:group-hover:rotate-6"
       >
         {isDark ? (
           <>

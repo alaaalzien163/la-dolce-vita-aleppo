@@ -2,9 +2,9 @@ import type { Locale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import { navItemHref } from "@/components/layout/nav-items";
+import { iconButtonStyles } from "@/components/ui/button";
 import { routing } from "@/i18n/routing";
 import type { SectionId } from "@/lib/constants/sections";
-import { cn } from "@/lib/utils/cn";
 
 export type LocaleSwitcherTone = "default" | "inverse";
 
@@ -16,11 +16,6 @@ interface LocaleSwitcherProps {
   /** `"inverse"` on dark surfaces. */
   readonly tone?: LocaleSwitcherTone;
 }
-
-const TONE_CLASS: Record<LocaleSwitcherTone, string> = {
-  default: "text-foreground hover:bg-surface-muted",
-  inverse: "text-foreground-inverse hover:bg-surface-inverse-muted",
-};
 
 /**
  * Server-rendered language toggle.
@@ -71,11 +66,7 @@ export async function LocaleSwitcher({ locale, current, tone = "default" }: Loca
       hrefLang={target}
       aria-label={label}
       title={label}
-      className={cn(
-        "inline-flex size-11 items-center justify-center rounded-control",
-        "transition-colors duration-150 ease-out",
-        TONE_CLASS[tone],
-      )}
+      className={iconButtonStyles({ tone })}
     >
       {/* Decorative: the link is named by aria-label. */}
       <svg

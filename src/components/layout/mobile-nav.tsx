@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import type { NavItem } from "@/components/layout/nav-items";
+import { iconButtonStyles } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -64,11 +65,7 @@ export function MobileNav({ items, openLabel, closeLabel, menuLabel }: MobileNav
         aria-controls={panelId}
         aria-label={open ? closeLabel : openLabel}
         onClick={() => setOpen((value) => !value)}
-        className={cn(
-          "inline-flex size-11 items-center justify-center rounded-control",
-          "text-foreground transition-colors duration-150 ease-out",
-          "hover:bg-surface-muted active:bg-border",
-        )}
+        className={iconButtonStyles()}
       >
         {/* Decorative: the button is named by aria-label. */}
         <svg
@@ -99,7 +96,7 @@ export function MobileNav({ items, openLabel, closeLabel, menuLabel }: MobileNav
                   onClick={close}
                   className={cn(
                     "block rounded-control px-3 py-3 text-base font-medium",
-                    "transition-colors duration-150 ease-out hover:bg-surface-muted",
+                    "transition-colors duration-150 ease-out hover:bg-surface-muted active:bg-border",
                   )}
                 >
                   {item.label}

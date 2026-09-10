@@ -45,6 +45,8 @@ interface ContactEntry {
   readonly value: string;
   /** Force LTR for values whose character order matters. */
   readonly isolate?: boolean;
+  /** Auto-detect direction for database text (Arabic on an English page). */
+  readonly autoDir?: boolean;
   readonly external?: boolean;
 }
 
@@ -88,15 +90,21 @@ export async function Contact({ locale, result }: ContactProps) {
 
     entries.push({
       key: "snapchat",
-      label: t("email"),
+      label: t("snapchat"),
       href: snapchatUrl,
       value: settings.email,
+      isolate: true,
       external: Boolean(snapchatUrl),
     });
   }
 
   if (settings?.address) {
-    entries.push({ key: "address", label: t("address"), value: settings.address });
+    entries.push({
+      key: "address",
+      label: t("address"),
+      value: settings.address,
+      autoDir: true,
+    });
   }
 
   if (settings?.googleMapsUrl && isSafeExternalUrl(settings.googleMapsUrl)) {
@@ -144,13 +152,16 @@ export async function Contact({ locale, result }: ContactProps) {
                       {...(entry.external
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : null)}
-                      dir={entry.isolate ? "ltr" : undefined}
-                      className="inline-block underline decoration-accent-line decoration-1 underline-offset-4 transition-colors duration-150 ease-out hover:text-accent-ink"
+                      dir={entry.isolate ? "ltr" : entry.autoDir ? "auto" : undefined}
+                      className="inline-block transition-colors duration-150 ease-out hover:text-accent-ink active:text-foreground"
                     >
                       {entry.value}
                     </a>
                   ) : (
-                    <span dir={entry.isolate ? "ltr" : undefined} className="inline-block">
+                    <span
+                      dir={entry.isolate ? "ltr" : entry.autoDir ? "auto" : undefined}
+                      className="inline-block"
+                    >
                       {entry.value}
                     </span>
                   )}

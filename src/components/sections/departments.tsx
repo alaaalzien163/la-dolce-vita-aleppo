@@ -74,6 +74,7 @@ export async function Departments({
   // Card and notice levels follow the enclosing heading so no level is skipped.
   const cardLevel = headingLevel === 1 ? 2 : 3;
   const noticeLevel = headingLevel === 1 ? 2 : 3;
+  const viewMoreLabel = t("viewMore");
 
   return (
     <Section id={SECTION_IDS.departments} labelledBy={HEADING_ID}>
@@ -109,11 +110,12 @@ export async function Departments({
           <>
             <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
               {visible.map((department) => (
-                <li key={department.id} className="flex">
+                <li key={department.id} className="flex min-w-0">
                   <DepartmentCard
                     locale={locale}
                     department={department}
                     headingLevel={cardLevel}
+                    viewMoreLabel={viewMoreLabel}
                   />
                 </li>
               ))}

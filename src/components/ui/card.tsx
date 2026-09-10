@@ -36,7 +36,7 @@ export function Card({
           ? "border-border-inverse bg-surface-inverse text-foreground-inverse"
           : "border-border bg-surface text-foreground",
         interactive &&
-          "transition-[border-color,box-shadow] duration-200 ease-out hover:border-accent-line hover:shadow-raised",
+          "transition-[border-color,box-shadow] duration-200 ease-out hover:border-accent-line hover:shadow-raised active:border-border-strong active:shadow-card",
         className,
       )}
     >

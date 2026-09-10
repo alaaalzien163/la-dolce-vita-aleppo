@@ -57,6 +57,30 @@ export function buttonStyles({
   return cn(BASE, VARIANT_CLASS[variant], SIZE_CLASS[size], className);
 }
 
+/**
+ * Icon-button skin for the bare icon controls (theme toggle, language switcher,
+ * mobile menu). One 44px touch target with the same hover/active pair everywhere,
+ * so the header controls cannot drift into their own hover colours. `inverse` is
+ * for dark bands (footer language switcher).
+ */
+export function iconButtonStyles({
+  tone = "default",
+  className,
+}: {
+  readonly tone?: "default" | "inverse";
+  readonly className?: string;
+} = {}): string {
+  return cn(
+    "inline-flex size-11 items-center justify-center rounded-control",
+    "transition-colors duration-150 ease-out",
+    "disabled:pointer-events-none disabled:opacity-45",
+    tone === "default"
+      ? "text-foreground hover:bg-surface-muted active:bg-border"
+      : "text-foreground-inverse hover:bg-surface-inverse-muted active:bg-border-inverse",
+    className,
+  );
+}
+
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
   readonly variant?: ButtonVariant;
   readonly size?: ButtonSize;

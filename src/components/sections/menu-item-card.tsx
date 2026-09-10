@@ -38,7 +38,7 @@ export function MenuItemCard({ item, featuredLabel, openLabel, closeLabel }: Men
         aria-haspopup="dialog"
         aria-label={openLabel}
         onClick={() => dialogRef.current?.showModal()}
-        className="group flex min-h-24 w-full overflow-hidden rounded-card border border-border bg-surface text-start shadow-card transition-[border-color,box-shadow] duration-200 ease-out hover:border-accent-line hover:shadow-raised"
+        className="group flex min-h-24 w-full overflow-hidden rounded-card border border-border bg-surface text-start shadow-card transition-[border-color,box-shadow] duration-200 ease-out hover:border-accent-line hover:shadow-raised active:border-border-strong active:shadow-card"
       >
         {imageUrl ? (
           <span className="relative w-24 shrink-0 overflow-hidden bg-surface-muted sm:w-28 lg:w-32">
@@ -127,7 +127,7 @@ export function MenuItemCard({ item, featuredLabel, openLabel, closeLabel }: Men
           <form method="dialog" className="mt-8 flex justify-end">
             <button
               type="submit"
-              className="inline-flex min-h-11 items-center justify-center rounded-control border border-border-strong px-4 text-sm font-semibold transition-colors duration-150 ease-out hover:bg-surface-muted"
+              className="inline-flex min-h-11 items-center justify-center rounded-control border border-border-strong px-4 text-sm font-semibold transition-colors duration-150 ease-out hover:bg-surface-muted active:bg-border"
             >
               {closeLabel}
             </button>

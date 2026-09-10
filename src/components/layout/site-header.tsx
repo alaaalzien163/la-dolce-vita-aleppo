@@ -85,7 +85,7 @@ export async function SiteHeader({ locale, current }: SiteHeaderProps) {
                   aria-current={item.id === current ? "page" : undefined}
                   className={cn(
                     "inline-flex h-10 items-center rounded-control px-3 text-sm font-medium",
-                    "transition-colors duration-150 ease-out hover:bg-surface-muted",
+                    "transition-colors duration-150 ease-out hover:bg-surface-muted active:bg-border",
                     "aria-[current=page]:text-accent-ink",
                   )}
                 >

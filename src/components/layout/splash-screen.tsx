@@ -10,10 +10,11 @@ import styles from "./splash-screen.module.css";
 /**
  * Decorative splash screen that plays on every full public document load.
  *
- * A fixed cream overlay plays a short CSS 3D entrance - a gold ring settles like a
- * coin, the olive logo tips up beneath it, then the whole group sways gently - and
- * fades out on its own. The page underneath keeps rendering and hydrating the whole
- * time; the splash only covers it and is never unmounted as content.
+ * A fixed overlay in the client-approved splash surfaces plays a short CSS 3D
+ * entrance - a gold ring settles like a coin, the olive logo tips up beneath it,
+ * then the whole group sways gently - and fades out on its own. The page
+ * underneath keeps rendering and hydrating the whole time; the splash only covers
+ * it and is never unmounted as content.
  *
  * The `[locale]` layout stays mounted across client-side navigation, so it does not
  * replay while the visitor clicks around. A refresh, direct URL entry, or other full
@@ -31,8 +32,8 @@ import styles from "./splash-screen.module.css";
  * itself is decorative and exposes nothing to the accessibility tree.
  *
  * The mark is the exact Navbar logo asset (`public/logo.png`). It sits directly on
- * the splash backdrop so the splash is one unbroken burgundy surface. Brand colours
- * are pinned, so the splash reads the same in both themes; the logo is not recoloured.
+ * the splash backdrop so the splash is one unbroken surface. Brand colours are
+ * pinned, so the splash reads the same in both themes; the logo is not recoloured.
  *
  * No `useTranslations` - the splash is the logo mark plus a gold ring, identical in
  * both locales, so it needs no message catalogue.
@@ -137,7 +138,7 @@ export function SplashScreen({ children }: SplashScreenProps) {
                 label="La Dolce Vita"
                 size="lg"
                 decorative
-                className="h-[clamp(3rem,11vw,6.5rem)] w-auto max-w-full"
+                className="h-[clamp(4rem,14vw,9rem)] w-auto max-w-full"
               />
             </div>
           </div>

@@ -14,11 +14,21 @@
  */
 
 .overlay {
-  /* Client-approved splash background: pinned to this exact value rather than a
-     palette token so the splash cannot drift with a later design change. */
-  background-color: #550000;
+  /* Client-approved splash surfaces, pinned as literals so neither can drift:
+     light mode uses the brand cream, dark mode the brand olive (see the override
+     below). Both are authoritative brand colours that never flip with the theme
+     ramp, keeping the splash one unbroken surface with no gaps or edge bleed. */
+  background-color: #e7ddc8;
   perspective: 1200px;
   animation: splash-fade-in 0.32s ease-out both;
+}
+
+/* Night interpretation: the same pinned brand identity, as the deeper olive
+   ground. `data-theme` is stamped on `<html>` before first paint, and the overlay
+   only mounts after hydration, so the attribute selector is always true by the
+   time this renders. */
+:global(html[data-theme="dark"]) .overlay {
+  background-color: #3f4123;
 }
 
 .exit {

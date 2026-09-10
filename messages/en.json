@@ -184,8 +184,6 @@
     "description": "Images shown in the department carousel. The first image previews the department in lists.",
     "uploadLabel": "Add images",
     "uploadHint": "JPEG, PNG, WebP, or AVIF, up to 5 MB. You can select several files at once.",
-    "pickFiles": "Choose images",
-    "fileCount": "%count% file(s) selected",
     "removeFile": "Remove %name%",
     "upload": "Upload",
     "uploading": "Uploading…",

@@ -321,6 +321,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      section_images: {
+        Row: {
+          alt_text: string | null;
+          created_at: string;
+          display_order: number;
+          id: string;
+          image_url: string;
+          is_active: boolean;
+          section_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          alt_text?: string | null;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url: string;
+          is_active?: boolean;
+          section_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          alt_text?: string | null;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          image_url?: string;
+          is_active?: boolean;
+          section_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "section_images_section_id_fkey";
+            columns: ["section_id"];
+            isOneToOne: false;
+            referencedRelation: "sections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sections: {
         Row: {
           created_at: string;

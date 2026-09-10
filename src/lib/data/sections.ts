@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { isEmptyList, type QueryResult, toQueryResult } from "@/lib/supabase/result";
 import type { TableRow } from "@/lib/supabase/tables";
 import type { PublicDepartment } from "@/types/content";
+import { getPublicSectionPreviews } from "@/lib/data/section-images";
 
 /**
  * Read access to `public.sections`, which is what the homepage calls "Departments"
@@ -16,11 +17,12 @@ import type { PublicDepartment } from "@/types/content";
  * the compiler resolves the row shape from these names so `mapDepartment` is checked
  * against the real schema.
  *
- * `slug` is deliberately absent - the homepage band renders only its own card copy
- * and image, so a column nobody prints is not fetched. The menu tree, whose browse
- * links need `slug`, selects it separately in `src/lib/data/menu.ts`.
+ * `slug` is included because the card now links each department to its detail page
+ * on both the homepage band and the `/departments` list, so the print consumers
+ * need it here; the menu tree, whose browse links also need `slug`, selects it
+ * separately in `src/lib/data/menu.ts`.
  */
-const DEPARTMENT_COLUMNS = "id, name, description, image_url, display_order" as const;
+const DEPARTMENT_COLUMNS = "id, name, slug, description, image_url, display_order" as const;
 
 /**
  * The subset of `sections` this module reads, derived from the generated schema rather
@@ -31,7 +33,7 @@ const DEPARTMENT_COLUMNS = "id, name, description, image_url, display_order" as 
  */
 type DepartmentRow = Pick<
   TableRow<"sections">,
-  "id" | "name" | "description" | "image_url" | "display_order"
+  "id" | "name" | "slug" | "description" | "image_url" | "display_order"
 >;
 
 /**
@@ -55,14 +57,36 @@ function isRenderable(row: DepartmentRow): boolean {
   );
 }
 
-function mapDepartment(row: DepartmentRow): PublicDepartment {
+function mapDepartment(row: DepartmentRow, previewImageUrl: string | null): PublicDepartment {
   return {
     id: row.id,
     name: row.name.trim(),
+    slug: row.slug.trim(),
     description: row.description?.trim() ?? null,
     imageUrl: row.image_url,
+    previewImageUrl,
     displayOrder: row.display_order,
   };
+}
+
+/**
+ * Resolves each department's list-card visual: the first active `section_images` row
+ * when one exists, else the legacy single `sections.image_url`. Never a broken image.
+ */
+async function snapshotPreviews(
+  departments: readonly DepartmentRow[],
+): Promise<ReadonlyMap<string, string | null>> {
+  const previews = await getPublicSectionPreviews(departments.map((row) => row.id));
+  const byId = new Map<string, string | null>();
+
+  for (const row of departments) {
+    byId.set(
+      row.id,
+      previews.get(row.id) ?? (typeof row.image_url === "string" ? row.image_url : null),
+    );
+  }
+
+  return byId;
 }
 
 /**
@@ -95,9 +119,11 @@ export async function getPublicDepartments(): Promise<QueryResult<readonly Publi
     return result;
   }
 
-  const departments = result.data.filter(isRenderable).map(mapDepartment);
+  const departments = result.data.filter(isRenderable);
+  const previews = await snapshotPreviews(departments);
+  const mapped = departments.map((row) => mapDepartment(row, previews.get(row.id) ?? null));
 
-  const discarded = result.data.length - departments.length;
+  const discarded = result.data.length - mapped.length;
   if (discarded > 0) {
     console.warn(
       `[data] sections.getPublicDepartments discarded ${discarded} unrenderable row(s) ` +
@@ -107,5 +133,45 @@ export async function getPublicDepartments(): Promise<QueryResult<readonly Publi
 
   // Every row failing validation is not an empty table - it is a content problem
   // that should surface as an empty section rather than a broken render.
-  return departments.length === 0 ? { status: "empty" } : { status: "success", data: departments };
+  return mapped.length === 0 ? { status: "empty" } : { status: "success", data: mapped };
+}
+
+/**
+ * One publicly visible department by slug, for the department detail page.
+ *
+ * The same scoping and renderability rules as `getPublicDepartments`, but the
+ * lookup key is the URL slug. A blank or unknown slug returns `empty`, which the
+ * page turns into `notFound()` rather than inventing a department.
+ */
+export async function getPublicDepartmentBySlug(
+  slug: string,
+): Promise<QueryResult<PublicDepartment>> {
+  const supabase = getSupabaseServerClient();
+
+  const response = await supabase
+    .from("sections")
+    .select(DEPARTMENT_COLUMNS)
+    .eq("is_active", true)
+    .eq("slug", slug)
+    .limit(1);
+
+  const result = toQueryResult(
+    "sections.getPublicDepartmentBySlug",
+    response,
+    (rows) => rows.length === 0,
+  );
+
+  if (result.status !== "success") {
+    return result;
+  }
+
+  const row = result.data[0];
+
+  // `noUncheckedIndexedAccess` is on; the emptiness predicate above is not visible
+  // to the compiler as a narrowing of index access.
+  if (!row || !isRenderable(row)) {
+    return { status: "empty" };
+  }
+
+  return { status: "success", data: mapDepartment(row, row.image_url) };
 }

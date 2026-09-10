@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useActionState } from "react";
 
 import { SECTION_FORM_IDLE, type SectionFormState } from "@/app/admin/sections/error-keys";
@@ -35,23 +37,16 @@ export interface SectionFormLabels {
   readonly name: string;
   readonly slug: string;
   readonly description: string;
-  readonly image: string;
   readonly displayOrder: string;
   readonly isActive: string;
   readonly hintName: string;
   readonly hintSlug: string;
   readonly hintDescription: string;
   readonly hintDisplayOrder: string;
-  readonly hintImage: string;
   readonly optional: string;
-  readonly currentImage: string;
-  readonly removeImage: string;
-  readonly replaceImageHint: string;
   readonly save: string;
   readonly saving: string;
   readonly cancel: string;
-  readonly uploadUnavailableTitle: string;
-  readonly uploadUnavailableDescription: string;
   /** Validation and action error keys mapped to localized sentences. */
   readonly errors: Readonly<Record<string, string>>;
 }
@@ -60,7 +55,6 @@ interface SectionFormProps {
   readonly action: (state: SectionFormState, formData: FormData) => Promise<SectionFormState>;
   readonly labels: SectionFormLabels;
   readonly cancelHref: string;
-  readonly uploadAvailable: boolean;
   /** Absent when creating. */
   readonly section?: AdminSection;
 }
@@ -70,17 +64,18 @@ function describedBy(id: string, hasError: boolean): string {
   return hasError ? `${id}-hint ${id}-error` : `${id}-hint`;
 }
 
-export function SectionForm({
-  action,
-  labels,
-  cancelHref,
-  uploadAvailable,
-  section,
-}: SectionFormProps) {
+export function SectionForm({ action, labels, cancelHref, section }: SectionFormProps) {
   const [state, formAction, pending] = useActionState(action, SECTION_FORM_IDLE);
+  const router = useRouter();
 
   const fieldErrors = state.status === "invalid" ? state.fields : {};
   const actionError = state.status === "error" ? labels.errors[state.error] : null;
+
+  useEffect(() => {
+    if (state.status === "success" && "createdId" in state) {
+      router.replace(`/admin/sections/${state.createdId}/edit`);
+    }
+  }, [state, router]);
 
   return (
     <form action={formAction} aria-busy={pending} className="flex max-w-160 flex-col gap-8">
@@ -215,64 +210,6 @@ export function SectionForm({
           </p>
         ) : null}
       </div>
-
-      <fieldset className="flex flex-col gap-3 border-t border-border pt-6">
-        <legend className="text-sm font-semibold">{labels.image}</legend>
-
-        {uploadAvailable ? (
-          <>
-            {section?.image_url ? (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-foreground-muted">{labels.currentImage}</p>
-                {/*
-                  A plain <img>, not next/image. This is a private admin preview of an
-                  arbitrary stored URL; routing it through the optimizer would spend a
-                  transform on an image only one person will ever look at.
-                */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={section.image_url}
-                  alt={section.name}
-                  className="h-24 w-auto rounded-card border border-border object-cover"
-                />
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name="removeImage"
-                    disabled={pending}
-                    className="size-4 accent-[var(--color-success)]"
-                  />
-                  {labels.removeImage}
-                </label>
-              </div>
-            ) : null}
-
-            <label htmlFor="section-image" className="text-sm font-semibold">
-              {section?.image_url ? labels.replaceImageHint : labels.image}{" "}
-              <span className="font-normal text-foreground-muted">({labels.optional})</span>
-            </label>
-            <input
-              id="section-image"
-              name="image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              disabled={pending}
-              aria-describedby="section-image-hint"
-              className="block w-full text-sm"
-            />
-            <p id="section-image-hint" className="text-sm text-foreground-muted">
-              {labels.hintImage}
-            </p>
-          </>
-        ) : (
-          <div className="rounded-control border border-dashed border-border-strong/45 px-4 py-3">
-            <p className="text-sm font-medium">{labels.uploadUnavailableTitle}</p>
-            <p className="mt-1 text-sm text-foreground-muted">
-              {labels.uploadUnavailableDescription}
-            </p>
-          </div>
-        )}
-      </fieldset>
 
       <label className="flex items-center gap-3 border-t border-border pt-6 text-sm font-semibold">
         <input

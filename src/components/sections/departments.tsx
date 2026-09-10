@@ -56,7 +56,7 @@ const HEADING_ID = "departments-heading";
 
 /** A department worth showing: it has something to read or something to look at. */
 function isPublishable(department: PublicDepartment): boolean {
-  return Boolean(department.description ?? department.imageUrl);
+  return Boolean(department.description ?? department.previewImageUrl);
 }
 
 export async function Departments({
@@ -110,7 +110,11 @@ export async function Departments({
             <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
               {visible.map((department) => (
                 <li key={department.id} className="flex">
-                  <DepartmentCard department={department} headingLevel={cardLevel} />
+                  <DepartmentCard
+                    locale={locale}
+                    department={department}
+                    headingLevel={cardLevel}
+                  />
                 </li>
               ))}
             </ul>

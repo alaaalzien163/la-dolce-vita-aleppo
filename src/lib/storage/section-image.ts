@@ -3,29 +3,16 @@ import "server-only";
 /**
  * Storage for section images.
  *
- * THE BUCKET IS NOT CONFIGURED, AND THAT IS A FINDING, NOT AN OVERSIGHT.
- *
- * The original live-project audit did not identify a section-specific bucket.
- * Uploads therefore remain explicitly configured rather than guessed from another
- * module's storage.
- *
- * The probe is reliable: Supabase Storage answers the public object endpoint with
- * `NoSuchBucket` for a bucket that does not exist and `NoSuchKey` for one that does but
- * lacks the object, and a control name confirmed the distinction.
- *
- * Creating a bucket is out of scope, and writing section images into another module's bucket would
- * be assuming a bucket that is plainly scoped to something else - it would also almost
- * certainly fail that bucket's storage policies, which cannot be read with the
- * publishable key. So this module refuses to guess.
- *
- * TO ENABLE UPLOADS, set `SUPABASE_SECTIONS_BUCKET` to an existing bucket. Nothing else
- * changes: the form already renders the file field, the actions already call through
- * here, and `next.config.ts` already allows `/storage/v1/object/public/**` on the project
- * hostname. Until it is set, the upload field explains that it is unavailable and the
- * rest of the CRUD works normally.
- *
- * This is a server-only value, deliberately not `NEXT_PUBLIC_*`: a bucket name is
+ * The bucket name is read from `SUPABASE_SECTIONS_BUCKET` (currently `section-images`
+ * in `.env.local`) and is deliberately not `NEXT_PUBLIC_*`: a bucket name is
  * configuration for server-side writes and has no business in the browser bundle.
+ * `next.config.ts` already allows `/storage/v1/object/public/**` on the project
+ * hostname, so public URLs serve without an optimizer bypass.
+ *
+ * Images are uploaded in batches - one Storage object and one `section_images` row per
+ * file - and each batch is independent of the section's other fields. The actions map
+ * the uploaded objects to rows; on a failed insert this module's callers roll the
+ * objects back with `deleteOwnedSectionImage`.
  */
 
 import { getSupabaseAuthClient } from "@/lib/supabase/server";
@@ -103,18 +90,19 @@ export function isImageUploadAvailable(): boolean {
  * No part of the admin's input reaches the path, so there is nothing for `../` to appear
  * in and no sanitiser to get wrong.
  *
- * A timestamp makes each upload a new object. Replacing an image therefore never
- * overwrites in place, which matters because CDN and browser caches key on URL: reusing
- * the path would leave the old picture on screen until every cache expired.
+ * A timestamp plus a per-batch sequence makes every upload a new object even within one
+ * multi-file request. Replacing an image therefore never overwrites in place, which
+ * matters because CDN and browser caches key on URL: reusing the path would leave the
+ * old picture on screen until every cache expired.
  */
-function buildObjectPath(sectionId: string, contentType: string): string {
+function buildObjectPath(sectionId: string, contentType: string, sequence: number): string {
   const extension = ALLOWED_TYPES.get(contentType);
 
   if (!extension) {
     throw new Error(`Unsupported content type reached path construction: ${contentType}`);
   }
 
-  return `sections/${sectionId}/${Date.now()}.${extension}`;
+  return `${sectionId}/${Date.now()}-${sequence}.${extension}`;
 }
 
 /** Confirms the bytes are one of the permitted image formats. */
@@ -124,63 +112,105 @@ async function sniffType(file: File): Promise<string | null> {
 }
 
 export interface UploadedImage {
-  /** Public URL to store in `sections.image_url`. */
+  /** Public URL to store in `section_images.image_url`. */
   readonly publicUrl: string;
-  /** Object path, retained so the upload can be rolled back if the row update fails. */
+  /** Object path, retained so the upload can be rolled back if the row insert fails. */
   readonly path: string;
 }
 
+/** One file the batch rejected, with the reason key and its position in the selection. */
+export interface SectionImageFailure {
+  readonly index: number;
+  readonly fileName: string;
+  readonly error: StorageError;
+}
+
+export interface UploadSectionImagesResult {
+  readonly uploaded: readonly UploadedImage[];
+  readonly failures: readonly SectionImageFailure[];
+}
+
 /**
- * Uploads a section image and returns its public URL.
+ * Determines whether a file is acceptable and, if so, which (sniffed) content type it is.
  *
- * Runs through the authenticated client, so the project's storage policies decide whether
- * this admin may write - the same authority that governs table access. No privileged key
- * is involved.
+ * The browser-supplied `file.type` is a claim. The bytes are the evidence.
  */
-export async function uploadSectionImage(
-  sectionId: string,
+async function inspectFile(
   file: File,
-): Promise<{ ok: true; image: UploadedImage } | { ok: false; error: StorageError }> {
-  const bucket = getSectionsBucket();
-
-  if (!bucket) {
-    return { ok: false, error: STORAGE_ERROR.notConfigured };
-  }
-
-  if (file.size === 0) {
-    return { ok: false, error: STORAGE_ERROR.unsupportedType };
-  }
-
-  if (file.size > MAX_BYTES) {
+): Promise<{ ok: true; contentType: string } | { ok: false; error: StorageError }> {
+  if (file.size > 0 && file.size > MAX_BYTES) {
     return { ok: false, error: STORAGE_ERROR.tooLarge };
   }
 
-  // The browser-supplied `file.type` is a claim. The bytes are the evidence.
   const contentType = await sniffType(file);
 
   if (!contentType) {
     return { ok: false, error: STORAGE_ERROR.unsupportedType };
   }
 
-  const supabase = await getSupabaseAuthClient();
-  const path = buildObjectPath(sectionId, contentType);
+  return { ok: true, contentType };
+}
 
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
-    contentType,
-    // Never overwrite: the path is unique per upload, so a collision would mean
-    // something unexpected is happening and should fail loudly.
-    upsert: false,
-    cacheControl: "31536000",
-  });
+/**
+ * Uploads a batch of section images, one object per file.
+ *
+ * Files are validated and uploaded independently so one bad file cannot block the rest
+ * of the selection. Each failure is reported with its own key; the callers surface those
+ * keys beside the file they named. Every upload runs through the authenticated client so
+ * the project's storage policies decide whether this admin may write - the same
+ * authority that governs table access. No privileged key is involved.
+ */
+export async function uploadSectionImages(
+  sectionId: string,
+  files: readonly File[],
+): Promise<UploadSectionImagesResult> {
+  const bucket = getSectionsBucket();
 
-  if (error) {
-    console.error(`[storage] upload to ${bucket}/${path} failed: ${error.message}`);
-    return { ok: false, error: STORAGE_ERROR.uploadFailed };
+  if (!bucket) {
+    return {
+      uploaded: [],
+      failures: files.map((file, index) => ({
+        index,
+        fileName: file.name,
+        error: STORAGE_ERROR.notConfigured,
+      })),
+    };
   }
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  const supabase = await getSupabaseAuthClient();
+  const uploaded: UploadedImage[] = [];
+  const failures: SectionImageFailure[] = [];
 
-  return { ok: true, image: { publicUrl: data.publicUrl, path } };
+  for (const [index, file] of files.entries()) {
+    const inspected = await inspectFile(file);
+
+    if (!inspected.ok) {
+      failures.push({ index, fileName: file.name, error: inspected.error });
+      continue;
+    }
+
+    const path = buildObjectPath(sectionId, inspected.contentType, index + 1);
+
+    const { error } = await supabase.storage.from(bucket).upload(path, file, {
+      contentType: inspected.contentType,
+      // Never overwrite: the path is unique per upload, so a collision would mean
+      // something unexpected is happening and should fail loudly.
+      upsert: false,
+      cacheControl: "31536000",
+    });
+
+    if (error) {
+      console.error(`[storage] upload to ${bucket}/${path} failed: ${error.message}`);
+      failures.push({ index, fileName: file.name, error: STORAGE_ERROR.uploadFailed });
+      continue;
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+
+    uploaded.push({ publicUrl: data.publicUrl, path });
+  }
+
+  return { uploaded, failures };
 }
 
 /**
@@ -213,10 +243,17 @@ export function resolveOwnedObjectPath(sectionId: string, imageUrl: string): str
   }
 
   const path = decodeURIComponent(parsed.pathname.slice(index + marker.length));
-  const expectedPrefix = `sections/${sectionId}/`;
+  // New uploads live under `sections/<id>/`-free `<id>/`; a few legacy objects from the
+  // old single-image flow still sit under `sections/<id>/`. Both are owned by the section.
+  const expectedPrefix = `${sectionId}/`;
+  const legacyPrefix = `sections/${sectionId}/`;
 
   // Belt and braces: the prefix must match and no traversal segment may survive.
-  if (!path.startsWith(expectedPrefix) || path.includes("..") || path.includes("//")) {
+  if (
+    (!path.startsWith(expectedPrefix) && !path.startsWith(legacyPrefix)) ||
+    path.includes("..") ||
+    path.includes("//")
+  ) {
     return null;
   }
 

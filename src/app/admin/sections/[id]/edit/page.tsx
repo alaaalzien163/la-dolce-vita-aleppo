@@ -2,36 +2,42 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { updateSection } from "@/app/admin/sections/actions";
+import {
+  deleteSectionImageAction,
+  moveSectionImageAction,
+  uploadSectionImagesAction,
+} from "@/app/admin/sections/image-actions";
+import { getSectionImagesLabels } from "@/app/admin/sections/image-form-labels";
 import { getSectionFormLabels } from "@/app/admin/sections/form-labels";
 import { SectionForm } from "@/app/admin/sections/section-form";
+import { SectionImagesManager } from "@/app/admin/sections/section-images-manager";
 import { Container } from "@/components/ui/container";
 import { SectionNotice } from "@/components/ui/section-notice";
 import { getAdminLocale } from "@/i18n/admin-locale";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getAdminSection } from "@/lib/data/admin/sections";
+import { listAdminSectionImages } from "@/lib/data/admin/section-images";
 
-/**
- * Edit a section.
- *
- * A missing row renders a notice rather than calling `notFound()`, because reaching this
- * URL after deleting the section from another tab is ordinary, not exceptional - and the
- * admin's own not-found page would drop them out of the dashboard shell.
- */
 export const dynamic = "force-dynamic";
 
 interface EditSectionPageProps {
   readonly params: Promise<{ readonly id: string }>;
+  readonly searchParams: Promise<{ readonly created?: string }>;
 }
 
-export default async function EditSectionPage({ params }: EditSectionPageProps) {
+export default async function EditSectionPage({ params, searchParams }: EditSectionPageProps) {
   await requireAdmin();
 
-  const [{ id }, locale] = await Promise.all([params, getAdminLocale()]);
-  const [t, { labels, uploadAvailable }, result] = await Promise.all([
-    getTranslations({ locale, namespace: "adminSections" }),
-    getSectionFormLabels(),
-    getAdminSection(id),
-  ]);
+  const [{ id }, locale, { created }] = await Promise.all([params, getAdminLocale(), searchParams]);
+  const [{ labels }, { labels: imageLabels, uploadAvailable }, sectionResult, imagesResult] =
+    await Promise.all([
+      getSectionFormLabels(),
+      getSectionImagesLabels(),
+      getAdminSection(id),
+      listAdminSectionImages(id),
+    ]);
+
+  const t = await getTranslations({ locale, namespace: "adminSections" });
 
   return (
     <main className="py-section">
@@ -48,15 +54,34 @@ export default async function EditSectionPage({ params }: EditSectionPageProps) 
         <h1 className="text-display-sm font-medium">{t("editSection")}</h1>
 
         <div className="mt-10">
-          {result.status === "success" ? (
-            <SectionForm
-              action={updateSection}
-              labels={labels}
-              uploadAvailable={uploadAvailable}
-              cancelHref="/admin/sections"
-              section={result.data}
-            />
-          ) : result.status === "empty" ? (
+          {created === "1" ? (
+            <p className="mb-8 rounded-control border border-success/45 bg-success/5 px-4 py-3 text-sm">
+              {t("createdNotice")}
+            </p>
+          ) : null}
+
+          {sectionResult.status === "success" ? (
+            <div className="flex flex-col gap-16">
+              <SectionForm
+                action={updateSection}
+                labels={labels}
+                cancelHref="/admin/sections"
+                section={sectionResult.data}
+              />
+
+              <hr className="border-border" />
+
+              <SectionImagesManager
+                sectionId={sectionResult.data.id}
+                images={imagesResult.status === "success" ? imagesResult.data : []}
+                labels={imageLabels}
+                uploadAvailable={uploadAvailable}
+                uploadAction={uploadSectionImagesAction}
+                deleteAction={deleteSectionImageAction}
+                moveAction={moveSectionImageAction}
+              />
+            </div>
+          ) : sectionResult.status === "empty" ? (
             <SectionNotice
               title={t("notFoundTitle")}
               description={t("notFoundDescription")}

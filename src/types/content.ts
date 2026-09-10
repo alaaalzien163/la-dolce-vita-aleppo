@@ -16,6 +16,7 @@ import type { TableRow } from "@/lib/supabase/tables";
  */
 
 type SectionRow = TableRow<"sections">;
+type SectionImageRow = TableRow<"section_images">;
 type SiteSettingsRow = TableRow<"site_settings">;
 type StudioInfoRow = TableRow<"studio_info">;
 type VenueRow = TableRow<"venues">;
@@ -46,13 +47,43 @@ export type Department = {
 };
 
 /**
- * The homepage's Departments band.
+ * The homepage's Departments band and the `/departments` list.
  *
- * `Department` minus `slug`: the band renders `name`, `description`, and `image`
- * only, so the public read must not ship a column it never prints. The menu-tree
- * parser, which is the only consumer that needs `slug`, keeps the full model.
+ * `Department` minus nothing the card prints: the card now links through to the
+ * department's detail page, so `slug` is carried on both surfaces - homepage
+ * preview and full list - and the old exclusion (slug was only useful to the menu
+ * tree) no longer applies. `is_active` is intentionally still absent.
+ *
+ * `previewImageUrl` is the visual a list card shows: the department's first active
+ * `section_images` row when one exists, falling back to the legacy
+ * `sections.image_url` single image, then `null`. Never a broken image.
  */
-export type PublicDepartment = Omit<Department, "slug">;
+export type PublicDepartment = {
+  readonly id: Department["id"];
+  readonly name: Department["name"];
+  readonly slug: Department["slug"];
+  readonly description: Department["description"];
+  readonly imageUrl: Department["imageUrl"];
+  readonly previewImageUrl: string | null;
+  readonly displayOrder: Department["displayOrder"];
+};
+
+/**
+ * One public image of a Department, from `public.section_images`.
+ *
+ * Deliberately narrowed to the three columns a carousel slide can honestly render:
+ * an `id` for React keys, the `image_url`, and the `alt_text` metadata. `is_active`
+ * is absent because visibility is decided by RLS and the query in
+ * `src/lib/data/section-images.ts`, never by the UI; `display_order` is consumed by
+ * the query, not shipped to the component; timestamps carry no presentational
+ * meaning. `alt_text` stays nullable so the consumer can fall back to the
+ * department's own name - the same precedent `DepartmentCard` already sets.
+ */
+export type PublicSectionImage = {
+  readonly id: SectionImageRow["id"];
+  readonly imageUrl: SectionImageRow["image_url"];
+  readonly altText: SectionImageRow["alt_text"];
+};
 
 /**
  * Contact and social details, from the `public.site_settings` singleton.

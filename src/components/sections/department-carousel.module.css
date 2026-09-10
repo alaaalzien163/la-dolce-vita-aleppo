@@ -1,0 +1,138 @@
+.region {
+  width: 100%;
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+}
+
+/* The camera. Reserves the visual frame before any image arrives, so the carousel
+ * never causes layout shift; a fixed frame with `object-cover` keeps every slide
+ * the same shape. 4:3 on phones (less vertical cropping of a tall upload), 16:9
+ * from `sm` up (cinematic). `touch-action: pan-y` cedes vertical scrolling to the
+ * browser while horizontal drags stay ours. */
+.frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background-color: var(--color-surface-muted);
+  touch-action: pan-y;
+}
+
+@media (min-width: 640px) {
+  .frame {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* A calm, restrained entrance: the incoming slide only fades. No bounce, no zoom,
+ * no parallax - and under `prefers-reduced-motion` there is no animation at all,
+ * though navigation still works. */
+.image {
+  animation: slide-enter 500ms ease-out both;
+}
+
+@keyframes slide-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    animation: none;
+  }
+}
+
+/* Bottom bar: previous · dots + counter · next. Not overlaid on the photograph, so
+ * no control ever competes with the image. The flex row follows the document
+ * direction, so in RTL "previous" naturally lands on the right. */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.dots {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* A compact track: a dozen images still fit without growing into a wall of dots. */
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background-color: var(--color-border-strong);
+  cursor: pointer;
+  transition:
+    width 200ms ease-out,
+    background-color 200ms ease-out;
+}
+
+.dot:hover {
+  background-color: var(--color-foreground-muted);
+}
+
+/* The current slide reads as a short pill in the accent (gold), longer than the
+ * idle dots so the active position is legible even from a quick glance. */
+.dotActive {
+  width: 1.25rem;
+  background-color: var(--color-accent);
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background-color: transparent;
+  color: var(--color-foreground);
+  cursor: pointer;
+  transition:
+    color 150ms ease-out,
+    border-color 150ms ease-out;
+}
+
+.control:hover {
+  color: var(--color-accent-ink);
+  border-color: var(--color-accent-line);
+}
+
+/* Chevron semantics: "previous" points toward the start of reading, "next" toward
+ * the end. The glyphs are drawn as start/end chevrons and mirrored for RTL, so the
+ * labelled direction never changes meaning between locales. */
+.controlIcon {
+  transition: transform 150ms ease-out;
+}
+
+[dir="rtl"] .controlChevronStart {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .controlChevronEnd {
+  transform: scaleX(-1);
+}
+
+.counter {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--color-foreground-muted);
+}

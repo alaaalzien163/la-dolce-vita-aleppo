@@ -8,14 +8,13 @@ import { Container } from "@/components/ui/container";
 import { getAdminLocale } from "@/i18n/admin-locale";
 import { requireAdmin } from "@/lib/auth/admin";
 
-/** Create a section. Guarded before render; the action re-checks independently. */
 export const dynamic = "force-dynamic";
 
 export default async function NewSectionPage() {
   await requireAdmin();
 
   const locale = await getAdminLocale();
-  const [t, { labels, uploadAvailable }] = await Promise.all([
+  const [t, { labels }] = await Promise.all([
     getTranslations({ locale, namespace: "adminSections" }),
     getSectionFormLabels(),
   ]);
@@ -35,12 +34,7 @@ export default async function NewSectionPage() {
         <h1 className="text-display-sm font-medium">{t("newSection")}</h1>
 
         <div className="mt-10">
-          <SectionForm
-            action={createSection}
-            labels={labels}
-            uploadAvailable={uploadAvailable}
-            cancelHref="/admin/sections"
-          />
+          <SectionForm action={createSection} labels={labels} cancelHref="/admin/sections" />
         </div>
       </Container>
     </main>

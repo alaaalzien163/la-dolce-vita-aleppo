@@ -8,24 +8,7 @@ import { SectionNotice } from "@/components/ui/section-notice";
 import { getAdminLocale } from "@/i18n/admin-locale";
 import { requireAdmin } from "@/lib/auth/admin";
 import { listAdminSections } from "@/lib/data/admin/sections";
-
-/**
- * Sections management list.
- *
- * A Server Component with no client JavaScript at all. Status toggling is a `<form>`
- * posting to a Server Action, and edit and delete are links, so the whole screen is HTML
- * the browser already knows how to operate - keyboard, screen reader, and no-JS included.
- *
- * `requireAdmin()` runs before any markup, so there is no branch where this renders for a
- * visitor who is not a verified admin.
- *
- * Two layouts, one source of truth. Below `lg` each section is a labelled card; from `lg`
- * up it is a real `<table>` inside a contained horizontal scroller. Exactly one layout is
- * ever in the accessibility tree.
- *
- * `id`, `created_at`, and `updated_at` are deliberately not shown - none of them helps
- * anyone manage content.
- */
+import { getPublicSectionPreviews } from "@/lib/data/section-images";
 
 export const dynamic = "force-dynamic";
 
@@ -44,12 +27,14 @@ export default async function AdminSectionsPage({ searchParams }: SectionsPagePr
 
   const t = await getTranslations({ locale, namespace: "adminSections" });
 
-  // Validated against a known key rather than rendered, so the query string cannot print
-  // arbitrary text on an authenticated page.
   const rawError = Array.isArray(params.error) ? params.error[0] : params.error;
   const deleteError = rawError === "deleteFailed" ? t("deleteFailed") : null;
 
   const sections = result.status === "success" ? result.data : [];
+  const previews =
+    sections.length > 0
+      ? await getPublicSectionPreviews(sections.map((s) => s.id))
+      : new Map<string, string>();
 
   return (
     <main className="py-section">
@@ -106,18 +91,14 @@ export default async function AdminSectionsPage({ searchParams }: SectionsPagePr
                       <div className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-4 pb-3">
                         <dt className="text-foreground-muted">{t("colImage")}</dt>
                         <dd>
-                          {section.image_url ? (
+                          {(previews.get(section.id) ?? section.image_url) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={section.image_url}
+                              src={previews.get(section.id) ?? section.image_url!}
                               alt=""
                               className="size-16 rounded-control border border-border object-cover"
                             />
-                          ) : (
-                            <span className="flex size-16 items-center justify-center rounded-control border border-dashed border-border-strong/45 text-eyebrow text-foreground-muted uppercase">
-                              {t("noImage")}
-                            </span>
-                          )}
+                          ) : null}
                         </dd>
                       </div>
                       <div className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)] gap-4 py-3">
@@ -203,18 +184,14 @@ export default async function AdminSectionsPage({ searchParams }: SectionsPagePr
                     {sections.map((section) => (
                       <tr key={section.id} className="border-b border-border align-top">
                         <td className="py-4 pe-4">
-                          {section.image_url ? (
+                          {(previews.get(section.id) ?? section.image_url) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={section.image_url}
+                              src={previews.get(section.id) ?? section.image_url!}
                               alt=""
                               className="size-14 rounded-control border border-border object-cover"
                             />
-                          ) : (
-                            <span className="flex size-14 items-center justify-center rounded-control border border-dashed border-border-strong/45 text-eyebrow text-foreground-muted uppercase">
-                              {t("noImage")}
-                            </span>
-                          )}
+                          ) : null}
                         </td>
                         <td lang="ar" dir="rtl" className="py-4 pe-4 font-medium">
                           {section.name}

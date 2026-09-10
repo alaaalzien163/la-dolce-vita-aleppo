@@ -7,16 +7,12 @@ import { SECTION_ACTION_ERROR, type SectionFormState } from "@/app/admin/section
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePublicDepartments } from "@/lib/cache/public-revalidation";
 import { getAdminSection } from "@/lib/data/admin/sections";
-import {
-  deleteOwnedSectionImage,
-  STORAGE_ERROR,
-  uploadSectionImage,
-} from "@/lib/storage/section-image";
 import { getSupabaseAuthClient } from "@/lib/supabase/server";
 import { parseSectionForm } from "@/lib/validation/section";
 
 /**
- * Mutations for `public.sections`.
+ * Mutations for `public.sections` (the field form - name, slug, description, order, and
+ * active state). The section's image gallery is managed separately, in `image-actions.ts`.
  *
  * EVERY ACTION STARTS WITH `requireAdmin()`. A Server Action is a public HTTP endpoint -
  * reachable by anyone who knows its id, whether or not they ever loaded the page that
@@ -46,12 +42,6 @@ function revalidatePublicSections(): void {
   revalidatePublicDepartments();
 }
 
-/** The optional file input arrives as an empty `File` when nothing was chosen. */
-function readImageFile(formData: FormData): File | null {
-  const value = formData.get("image");
-  return value instanceof File && value.size > 0 ? value : null;
-}
-
 export async function createSection(
   _previous: SectionFormState,
   formData: FormData,
@@ -66,10 +56,6 @@ export async function createSection(
 
   const supabase = await getSupabaseAuthClient();
 
-  // The row is inserted before the image is uploaded, because the object path is keyed by
-  // the section's id and the database is what mints it. A failed upload afterwards leaves
-  // a section without a picture, which is a valid state the admin can retry - the reverse
-  // order would leave an orphaned file under an id that never existed.
   const { data, error } = await supabase
     .from("sections")
     .insert({
@@ -95,36 +81,10 @@ export async function createSection(
     return { status: "error", error: SECTION_ACTION_ERROR.saveFailed };
   }
 
-  const file = readImageFile(formData);
-
-  if (file) {
-    const upload = await uploadSectionImage(data.id, file);
-
-    if (!upload.ok) {
-      // The section exists and is usable; only the picture failed. Reported as an error so
-      // the admin knows to retry, rather than silently saving without it.
-      revalidatePublicSections();
-      return { status: "error", error: upload.error };
-    }
-
-    const { error: linkError } = await supabase
-      .from("sections")
-      .update({ image_url: upload.image.publicUrl })
-      .eq("id", data.id);
-
-    if (linkError) {
-      // The row could not be pointed at the object, so the object is not wanted.
-      await deleteOwnedSectionImage(data.id, upload.image.publicUrl);
-      console.error(`[admin] section image link failed: ${linkError.message}`, {
-        code: linkError.code,
-      });
-      revalidatePublicSections();
-      return { status: "error", error: STORAGE_ERROR.uploadFailed };
-    }
-  }
-
   revalidatePublicSections();
-  redirect("/admin/sections");
+  // The image gallery is the last thing an admin adds to a section, so creation hands the
+  // admin to the edit page (which hosts the gallery manager) rather than back to the list.
+  return { status: "success", createdId: data.id };
 }
 
 export async function updateSection(
@@ -156,24 +116,6 @@ export async function updateSection(
   }
 
   const supabase = await getSupabaseAuthClient();
-  const removeImage = formData.get("removeImage") === "on";
-  const file = readImageFile(formData);
-
-  let imageUrl: string | null = existing.data.image_url;
-  let uploadedUrl: string | null = null;
-
-  if (file) {
-    const upload = await uploadSectionImage(id, file);
-
-    if (!upload.ok) {
-      return { status: "error", error: upload.error };
-    }
-
-    uploadedUrl = upload.image.publicUrl;
-    imageUrl = uploadedUrl;
-  } else if (removeImage) {
-    imageUrl = null;
-  }
 
   const { error } = await supabase
     .from("sections")
@@ -183,17 +125,10 @@ export async function updateSection(
       description: parsed.data.description,
       display_order: parsed.data.displayOrder,
       is_active: parsed.data.isActive,
-      image_url: imageUrl,
     })
     .eq("id", id);
 
   if (error) {
-    // Roll back the freshly uploaded object: the row still points at the old image, so the
-    // new one is unreferenced.
-    if (uploadedUrl) {
-      await deleteOwnedSectionImage(id, uploadedUrl);
-    }
-
     if (error.code === UNIQUE_VIOLATION) {
       return { status: "invalid", fields: { slug: "slugInvalid" } };
     }
@@ -204,14 +139,6 @@ export async function updateSection(
       hint: error.hint,
     });
     return { status: "error", error: SECTION_ACTION_ERROR.saveFailed };
-  }
-
-  // Only now is the previous object genuinely unreferenced. Deleting it before the update
-  // committed would have broken the live page if the update then failed.
-  const replaced = (file || removeImage) && existing.data.image_url !== imageUrl;
-
-  if (replaced) {
-    await deleteOwnedSectionImage(id, existing.data.image_url);
   }
 
   revalidatePublicSections();
@@ -267,13 +194,6 @@ export async function deleteSection(formData: FormData): Promise<void> {
     redirect("/admin/sections");
   }
 
-  const existing = await getAdminSection(id);
-
-  if (existing.status !== "success") {
-    // Already gone, or unreadable. Either way there is nothing to delete.
-    redirect("/admin/sections");
-  }
-
   const supabase = await getSupabaseAuthClient();
   const { error } = await supabase.from("sections").delete().eq("id", id);
 
@@ -285,10 +205,6 @@ export async function deleteSection(formData: FormData): Promise<void> {
     });
     redirect(`/admin/sections?error=${SECTION_ACTION_ERROR.deleteFailed}`);
   }
-
-  // After the row is gone, so a failed delete never strands the page without its image.
-  // Scoped to `sections/<id>/`, so this cannot reach another section's objects.
-  await deleteOwnedSectionImage(id, existing.data.image_url);
 
   revalidatePublicSections();
   revalidatePath("/admin/sections");

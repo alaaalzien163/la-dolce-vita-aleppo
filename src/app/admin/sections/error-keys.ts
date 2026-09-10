@@ -1,8 +1,7 @@
 import type { SectionFieldErrors } from "@/lib/validation/section";
-import type { StorageError } from "@/lib/storage/section-image";
 
 /**
- * Error keys and form state for the section actions.
+ * Error keys and form state for the section field-save actions.
  *
  * Separate from `actions.ts` because a `"use server"` module may only export async
  * functions - Next.js rejects a value export there, since every export becomes a callable
@@ -22,11 +21,10 @@ export const SECTION_ACTION_ERROR = {
   deleteFailed: "deleteFailed",
 } as const;
 
-export type SectionActionError =
-  (typeof SECTION_ACTION_ERROR)[keyof typeof SECTION_ACTION_ERROR] | StorageError;
+export type SectionActionError = (typeof SECTION_ACTION_ERROR)[keyof typeof SECTION_ACTION_ERROR];
 
 /**
- * What the form renders after a submission.
+ * What the section field form renders after a submission.
  *
  * `invalid` carries per-field keys so each message lands beside its own input; `error`
  * carries a single key for a failure that is not attributable to one field.
@@ -34,6 +32,7 @@ export type SectionActionError =
 export type SectionFormState =
   | { readonly status: "idle" }
   | { readonly status: "invalid"; readonly fields: SectionFieldErrors }
-  | { readonly status: "error"; readonly error: SectionActionError };
+  | { readonly status: "error"; readonly error: SectionActionError }
+  | { readonly status: "success"; readonly createdId: string };
 
 export const SECTION_FORM_IDLE: SectionFormState = { status: "idle" };

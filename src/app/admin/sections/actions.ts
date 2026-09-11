@@ -12,7 +12,8 @@ import { parseSectionForm } from "@/lib/validation/section";
 
 /**
  * Mutations for `public.sections` (the field form - name, slug, description, order, and
- * active state). The section's image gallery is managed separately, in `image-actions.ts`.
+ * active state). The section's media (images and videos) is managed separately, in
+ * `media-actions.ts`.
  *
  * EVERY ACTION STARTS WITH `requireAdmin()`. A Server Action is a public HTTP endpoint -
  * reachable by anyone who knows its id, whether or not they ever loaded the page that

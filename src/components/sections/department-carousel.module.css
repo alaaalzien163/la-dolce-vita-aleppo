@@ -1,5 +1,11 @@
 .region {
   width: 100%;
+  /* The carousel is deliberately narrower than the page's 72rem content measure:
+   * a premium, centered editorial frame that keeps the media intimate instead of
+   * wall-to-wall. Controls share the same measure, so the whole widget sits on one
+   * centred grid centred, not just the image. */
+  max-width: 56rem;
+  margin-inline: auto;
 }
 
 .viewport {
@@ -9,12 +15,16 @@
 
 /* The camera. Reserves the visual frame before any image arrives, so the carousel
  * never causes layout shift; a fixed frame with `object-cover` keeps every slide
- * the same shape. 4:3 on phones (less vertical cropping of a tall upload), 16:9
- * from `sm` up (cinematic). `touch-action: pan-y` cedes vertical scrolling to the
- * browser while horizontal drags stay ours. */
+ * the same shape. A stable 1:1 square is the compromise for genuinely mixed
+ * sources - this site's Department media is mostly portrait photos (≈0.75:1),
+ * with a few landscape shots and a mix of 16:9 and portrait videos - because a
+ * square crops neither orientation hard: 3:4 photos lose only ~12-25% of height,
+ * landscape videos only their edges, and the handful of tall portrait clips stay
+ * legible. `touch-action: pan-y` cedes vertical scrolling to the browser while
+ * horizontal drags stay ours. */
 .frame {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   width: 100%;
   overflow: hidden;
   border-radius: var(--radius-panel);
@@ -22,16 +32,11 @@
   touch-action: pan-y;
 }
 
-@media (min-width: 640px) {
-  .frame {
-    aspect-ratio: 16 / 9;
-  }
-}
-
 /* A calm, restrained entrance: the incoming slide only fades. No bounce, no zoom,
  * no parallax - and under `prefers-reduced-motion` there is no animation at all,
  * though navigation still works. */
-.image {
+.image,
+.video {
   animation: slide-enter 500ms ease-out both;
 }
 
@@ -45,9 +50,34 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .image {
+  .image,
+  .video {
     animation: none;
   }
+}
+
+/* The image fills the same frame as the video: object-cover, so the frame's shape
+ * is identical for both media types. Without `object-fit` a `fill` image would
+ * stretch to the frame's width and height, which is what made the portrait photos
+ * look distorted against the old wide frame. */
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The video fills the same frame as a photograph: object-cover, never recoloured
+ * or filtered, so the frame's shape is identical for both media types and Light
+ * and Dark modes render the footage unchanged. */
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: var(--color-surface-muted);
 }
 
 /* Bottom bar: previous · dots + counter · next. Not overlaid on the photograph, so

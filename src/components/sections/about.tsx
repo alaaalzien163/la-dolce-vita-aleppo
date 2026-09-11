@@ -102,6 +102,14 @@ export async function About({ locale, result }: AboutProps) {
               ),
             )}
           </div>
+
+          {/* A quiet attribution, deliberately lighter than the story itself: the
+              founder line is small, muted body copy - never a heading or a callout
+              that could compete with the section's own title. */}
+          <p className="mt-8 flex items-baseline gap-2 text-sm text-foreground-muted" dir="auto">
+            <span>{t("foundedBy")}</span>
+            <span className="font-medium text-foreground">{t("founderName")}</span>
+          </p>
         </div>
       </div>
     </Section>

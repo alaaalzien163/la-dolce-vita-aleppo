@@ -3,20 +3,21 @@ import { getTranslations } from "next-intl/server";
 
 import { updateSection } from "@/app/admin/sections/actions";
 import {
-  deleteSectionImageAction,
-  moveSectionImageAction,
-  uploadSectionImagesAction,
-} from "@/app/admin/sections/image-actions";
-import { getSectionImagesLabels } from "@/app/admin/sections/image-form-labels";
+  deleteSectionMediaAction,
+  moveSectionMediaAction,
+  toggleSectionMediaAction,
+  uploadSectionMediaAction,
+} from "@/app/admin/sections/media-actions";
+import { getSectionMediaLabels } from "@/app/admin/sections/media-form-labels";
 import { getSectionFormLabels } from "@/app/admin/sections/form-labels";
 import { SectionForm } from "@/app/admin/sections/section-form";
-import { SectionImagesManager } from "@/app/admin/sections/section-images-manager";
+import { SectionMediaManager } from "@/app/admin/sections/section-media-manager";
 import { Container } from "@/components/ui/container";
 import { SectionNotice } from "@/components/ui/section-notice";
 import { getAdminLocale } from "@/i18n/admin-locale";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getAdminSection } from "@/lib/data/admin/sections";
-import { listAdminSectionImages } from "@/lib/data/admin/section-images";
+import { listAdminSectionMedia } from "@/lib/data/admin/section-media";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +30,12 @@ export default async function EditSectionPage({ params, searchParams }: EditSect
   await requireAdmin();
 
   const [{ id }, locale, { created }] = await Promise.all([params, getAdminLocale(), searchParams]);
-  const [{ labels }, { labels: imageLabels, uploadAvailable }, sectionResult, imagesResult] =
+  const [{ labels }, { labels: mediaLabels, uploadAvailable }, sectionResult, mediaResult] =
     await Promise.all([
       getSectionFormLabels(),
-      getSectionImagesLabels(),
+      getSectionMediaLabels(),
       getAdminSection(id),
-      listAdminSectionImages(id),
+      listAdminSectionMedia(id),
     ]);
 
   const t = await getTranslations({ locale, namespace: "adminSections" });
@@ -71,14 +72,15 @@ export default async function EditSectionPage({ params, searchParams }: EditSect
 
               <hr className="border-border" />
 
-              <SectionImagesManager
+              <SectionMediaManager
                 sectionId={sectionResult.data.id}
-                images={imagesResult.status === "success" ? imagesResult.data : []}
-                labels={imageLabels}
+                media={mediaResult.status === "success" ? mediaResult.data : []}
+                labels={mediaLabels}
                 uploadAvailable={uploadAvailable}
-                uploadAction={uploadSectionImagesAction}
-                deleteAction={deleteSectionImageAction}
-                moveAction={moveSectionImageAction}
+                uploadAction={uploadSectionMediaAction}
+                deleteAction={deleteSectionMediaAction}
+                moveAction={moveSectionMediaAction}
+                toggleAction={toggleSectionMediaAction}
               />
             </div>
           ) : sectionResult.status === "empty" ? (

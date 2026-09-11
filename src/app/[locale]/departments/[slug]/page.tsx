@@ -12,7 +12,7 @@ import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { SECTION_IDS } from "@/lib/constants/sections";
 import { getPublicDepartmentBySlug, getPublicDepartments } from "@/lib/data/sections";
-import { getPublicSectionImages } from "@/lib/data/section-images";
+import { getPublicSectionMedia } from "@/lib/data/section-media";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 interface DepartmentDetailPageProps {
@@ -65,12 +65,12 @@ export async function generateMetadata({ params }: DepartmentDetailPageProps): P
 }
 
 /**
- * A single Department's page: name, description, then the image carousel, then a
+ * A single Department's page: name, description, then the media carousel, then a
  * quiet way back to the list. Pattern follows the `/departments` page - one
  * heading (`h1`, the page's only title) and a `Section` surface.
  *
- * The carousel is mounted only when the department actually has publishable images;
- * zero images renders the page normally with no empty widget.
+ * The carousel is mounted only when the department actually has publishable media;
+ * zero media renders the page normally with no empty widget.
  */
 export default async function DepartmentDetailPage({ params }: DepartmentDetailPageProps) {
   const { locale, slug } = await params;
@@ -85,18 +85,20 @@ export default async function DepartmentDetailPage({ params }: DepartmentDetailP
     notFound();
   }
 
-  const [images, tCarousel, tDepartments] = await Promise.all([
-    getPublicSectionImages(department.data.id),
+  const [media, tCarousel, tDepartments] = await Promise.all([
+    getPublicSectionMedia(department.data.id),
     getTranslations({ locale, namespace: "carousel" }),
     getTranslations({ locale, namespace: "departments" }),
   ]);
 
   const carouselLabels = {
     regionLabel: tCarousel("regionLabel"),
-    previousImage: tCarousel("previousImage"),
-    nextImage: tCarousel("nextImage"),
+    previousMedia: tCarousel("previousMedia"),
+    nextMedia: tCarousel("nextMedia"),
     slideLabel: tCarousel("slideLabel"),
-    goToImage: tCarousel("goToImage"),
+    goToMedia: tCarousel("goToMedia"),
+    playVideo: tCarousel("playVideo"),
+    pauseVideo: tCarousel("pauseVideo"),
   };
 
   return (
@@ -114,10 +116,10 @@ export default async function DepartmentDetailPage({ params }: DepartmentDetailP
           }
         />
 
-        {images.status === "success" ? (
+        {media.status === "success" ? (
           <div className="mt-12">
             <DepartmentCarousel
-              images={images.data}
+              media={media.data}
               departmentName={department.data.name}
               locale={locale}
               labels={carouselLabels}

@@ -8,7 +8,7 @@ import { SectionNotice } from "@/components/ui/section-notice";
 import { getAdminLocale } from "@/i18n/admin-locale";
 import { requireAdmin } from "@/lib/auth/admin";
 import { listAdminSections } from "@/lib/data/admin/sections";
-import { getPublicSectionPreviews } from "@/lib/data/section-images";
+import { getPublicSectionPreviews } from "@/lib/data/section-media";
 
 export const dynamic = "force-dynamic";
 

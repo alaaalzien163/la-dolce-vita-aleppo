@@ -2,16 +2,16 @@ import "server-only";
 
 import { getTranslations } from "next-intl/server";
 
-import { isImageUploadAvailable } from "@/lib/storage/section-image";
+import type { SectionMediaLabels } from "@/app/admin/sections/section-media-manager";
 import { getAdminLocale } from "@/i18n/admin-locale";
-import type { SectionImagesLabels } from "@/app/admin/sections/section-images-manager";
+import { isImageUploadAvailable } from "@/lib/storage/section-image";
 
-export async function getSectionImagesLabels(): Promise<{
-  labels: SectionImagesLabels;
+export async function getSectionMediaLabels(): Promise<{
+  labels: SectionMediaLabels;
   uploadAvailable: boolean;
 }> {
   const locale = await getAdminLocale();
-  const t = await getTranslations({ locale, namespace: "adminSectionImages" });
+  const t = await getTranslations({ locale, namespace: "adminSectionMedia" });
 
   return {
     uploadAvailable: isImageUploadAvailable(),
@@ -20,18 +20,27 @@ export async function getSectionImagesLabels(): Promise<{
       description: t("description"),
       uploadLabel: t("uploadLabel"),
       uploadHint: t("uploadHint"),
+      videoLabel: t("videoLabel"),
+      videoHint: t("videoHint"),
+      posterLabel: t("posterLabel"),
+      posterHint: t("posterHint"),
+      addVideos: t("addVideos"),
       removeFile: t("removeFile"),
       upload: t("upload"),
       uploading: t("uploading"),
       uploadSuccess: t("uploadSuccess"),
       uploadPartial: t("uploadPartial"),
-      noImages: t("noImages"),
+      noMedia: t("noMedia"),
       existingHint: t("existingHint"),
+      mediaNumber: t("mediaNumber"),
+      mediaTypeImage: t("mediaTypeImage"),
+      mediaTypeVideo: t("mediaTypeVideo"),
+      activateMedia: t("activateMedia"),
+      deactivateMedia: t("deactivateMedia"),
       moveUp: t("moveUp"),
       moveDown: t("moveDown"),
-      deleteImage: t("deleteImage"),
+      deleteMedia: t("deleteMedia"),
       confirmDelete: t("confirmDelete"),
-      imageNumber: t("imageNumber"),
       uploadUnavailableTitle: t("uploadUnavailableTitle"),
       uploadUnavailableDescription: t("uploadUnavailableDescription"),
       errors: {
@@ -44,6 +53,8 @@ export async function getSectionImagesLabels(): Promise<{
         insertFailed: t("insertFailed"),
         notFound: t("notFound"),
         noFiles: t("noFiles"),
+        noVideos: t("noVideos"),
+        videoPathInvalid: t("videoPathInvalid"),
       },
     },
   };

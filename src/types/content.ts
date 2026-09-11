@@ -69,20 +69,30 @@ export type PublicDepartment = {
 };
 
 /**
- * One public image of a Department, from `public.section_images`.
- *
- * Deliberately narrowed to the three columns a carousel slide can honestly render:
- * an `id` for React keys, the `image_url`, and the `alt_text` metadata. `is_active`
- * is absent because visibility is decided by RLS and the query in
- * `src/lib/data/section-images.ts`, never by the UI; `display_order` is consumed by
- * the query, not shipped to the component; timestamps carry no presentational
- * meaning. `alt_text` stays nullable so the consumer can fall back to the
- * department's own name - the same precedent `DepartmentCard` already sets.
+ * The kind of media a Department carousel slide can render.
  */
-export type PublicSectionImage = {
+export type DepartmentMediaType = "image" | "video";
+
+/**
+ * One public media item of a Department, from `public.section_images`.
+ *
+ * Each media item is one row, discriminated by `media_type`: an image carries its
+ * URL in the (schema-named) `image_url` column; a video carries its asset path
+ * there too and, when present, points `poster_url` at a still image. Deliberately
+ * narrowed to the columns a carousel slide can honestly render - an `id` for React
+ * keys, the `media_type` discriminator, the media URL, the `alt_text` label, and
+ * the optional poster. `is_active` is absent because visibility is decided by RLS
+ * and the query in `src/lib/data/section-media.ts`, never by the UI; `display_order`
+ * is consumed by the query, not shipped to the component; timestamps carry no
+ * presentational meaning. `alt_text` stays nullable so the consumer can fall back
+ * to the department's own name - the same precedent `DepartmentCard` already sets.
+ */
+export type PublicSectionMedia = {
   readonly id: SectionImageRow["id"];
-  readonly imageUrl: SectionImageRow["image_url"];
+  readonly mediaType: DepartmentMediaType;
+  readonly mediaUrl: SectionImageRow["image_url"];
   readonly altText: SectionImageRow["alt_text"];
+  readonly posterUrl: SectionImageRow["poster_url"];
 };
 
 /**

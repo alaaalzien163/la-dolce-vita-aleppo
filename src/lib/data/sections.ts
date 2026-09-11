@@ -4,7 +4,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { isEmptyList, type QueryResult, toQueryResult } from "@/lib/supabase/result";
 import type { TableRow } from "@/lib/supabase/tables";
 import type { PublicDepartment } from "@/types/content";
-import { getPublicSectionPreviews } from "@/lib/data/section-images";
+import { getPublicSectionPreviews } from "@/lib/data/section-media";
 
 /**
  * Read access to `public.sections`, which is what the homepage calls "Departments"
